@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Trackly — Job Application Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #0a0a0a;
+    --muted: #888;
+    --border: #e0e0e0;
+    --row-hover: #f5f5f5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: 'DM Sans', sans-serif; font-size: 14px; min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    border-bottom: 2px solid var(--ink);
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 100;
+  }
+  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 0.06em; line-height: 1; }
+  .logo span { display: inline-block; width: 8px; height: 8px; background: var(--ink); border-radius: 50%; margin-left: 2px; vertical-align: middle; transform: translateY(-3px); }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .stat-chip { font-family: 'DM Mono', monospace; font-size: 11px; border: 1px solid var(--border); padding: 5px 12px; border-radius: 2px; color: var(--muted); letter-spacing: 0.04em; }
+  .stat-chip strong { color: var(--ink); font-weight: 500; }
+
+  .btn-gmail {
+    display: flex; align-items: center; gap: 7px;
+    background: var(--ink); color: #fff; border: none;
+    padding: 8px 16px; font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer;
+    border-radius: 2px; transition: background 0.15s; white-space: nowrap;
+  }
+  .btn-gmail:hover { background: #333; }
+
+  .gmail-status {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em;
+    color: var(--muted); padding: 6px 12px; border: 1px solid var(--border); border-radius: 2px;
+  }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+  .status-dot.connected { background: #111; animation: pdot 2s infinite; }
+  .status-dot.scanning  { background: #555; animation: spin 0.8s linear infinite; border-radius: 0; transform-origin: center; }
+  @keyframes pdot { 0%,100%{opacity:1}50%{opacity:0.35} }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TOASTS */
+  #toast-container { position: fixed; top: 76px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+  .toast {
+    background: var(--ink); color: #fff; padding: 14px 18px; min-width: 300px; max-width: 380px;
+    border-radius: 2px; font-size: 13px; line-height: 1.5; pointer-events: all;
+    animation: toastIn 0.3s ease both; cursor: pointer; position: relative; overflow: hidden;
+  }
+  .toast::after { content:''; position:absolute; bottom:0; left:0; height:2px; background:rgba(255,255,255,0.3); animation: ttimer 5s linear forwards; width:100%; }
+  @keyframes ttimer { from{transform:scaleX(1)}to{transform:scaleX(0)} }
+  @keyframes toastIn { from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)} }
+  @keyframes toastOut { from{opacity:1}to{opacity:0;transform:translateX(20px)} }
+  .toast-label { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.5); margin-bottom:3px; }
+  .toast-title { font-weight:600; }
+  .toast-body  { color:rgba(255,255,255,0.72); font-size:12px; margin-top:2px; }
+  .toast-close { position:absolute; top:10px; right:12px; background:none; border:none; color:rgba(255,255,255,0.4); font-size:14px; cursor:pointer; }
+  .toast-close:hover { color:#fff; }
+
+  /* EMAIL LOG */
+  .email-log-toggle {
+    font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.1em; color:var(--muted);
+    cursor:pointer; text-transform:uppercase; border:none; background:none; padding:0;
+    display:flex; align-items:center; gap:5px; margin-bottom:8px;
+  }
+  .email-log-toggle:hover { color:var(--ink); }
+  .email-log {
+    border:1px solid var(--border); max-height:160px; overflow-y:auto;
+    font-family:'DM Mono',monospace; font-size:11px; color:#666; background:#fafafa;
+    display:none; margin-bottom:24px;
+  }
+  .email-log.open { display:block; }
+  .log-entry { padding:8px 14px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; gap:10px; }
+  .log-entry:last-child { border-bottom:none; }
+  .log-time { color:#bbb; white-space:nowrap; flex-shrink:0; font-size:10px; padding-top:1px; }
+  .log-tag { flex-shrink:0; padding:1px 7px; border-radius:2px; font-size:9px; letter-spacing:0.1em; text-transform:uppercase; font-weight:600; }
+  .log-tag.rejection { background:#f0f0f0; color:#666; }
+  .log-tag.interview { background:var(--ink); color:#fff; }
+  .log-tag.offer     { background:var(--ink); color:#fff; }
+  .log-tag.info      { background:#f5f5f5; color:#bbb; }
+  .log-msg { flex:1; line-height:1.4; }
+
+  /* GMAIL BANNER */
+  .gmail-banner {
+    border:2px solid var(--ink); padding:20px 24px; margin-bottom:32px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px; background:#fafafa;
+  }
+  .gmail-banner-left { display:flex; align-items:center; gap:16px; }
+  .gmail-banner h3 { font-weight:600; font-size:14px; margin-bottom:3px; }
+  .gmail-banner p  { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+
+  /* MAIN */
+  main { max-width:1280px; margin:0 auto; padding:40px 40px 80px; }
+
+  .input-section { margin-bottom:40px; }
+  .section-label { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+  .input-row { display:flex; border:2px solid var(--ink); }
+  .input-row textarea { flex:1; border:none; outline:none; padding:16px 20px; font-family:'DM Sans',sans-serif; font-size:14px; resize:none; min-height:100px; background:#fff; line-height:1.6; }
+  .input-row textarea::placeholder { color:#bbb; }
+
+  .btn-add { background:var(--ink); color:#fff; border:none; padding:0 28px; font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; cursor:pointer; transition:background 0.15s; min-width:130px; display:flex; align-items:center; justify-content:center; gap:8px; flex-direction:column; }
+  .btn-add:hover { background:#222; }
+  .btn-add:disabled { background:#888; cursor:not-allowed; }
+  .btn-add .btn-icon { font-size:20px; line-height:1; }
+
+  .spinner { width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; display:inline-block; }
+
+  .error-banner { background:#fff0f0; border:1px solid #ffcccc; color:#cc0000; padding:10px 16px; font-family:'DM Mono',monospace; font-size:12px; margin-top:10px; display:none; border-radius:2px; }
+  .progress-bar-wrap { height:2px; background:#eee; overflow:hidden; display:none; margin-top:2px; }
+  .progress-bar-wrap.visible { display:block; }
+  .progress-bar { height:100%; background:var(--ink); width:0%; transition:width 0.4s ease; }
+
+  /* TABLE */
+  .table-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .table-title  { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:0.05em; }
+  .table-actions { display:flex; gap:8px; }
+  .btn-ghost { background:#fff; color:var(--ink); border:1px solid var(--ink); padding:7px 16px; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:all 0.15s; border-radius:2px; }
+  .btn-ghost:hover { background:var(--ink); color:#fff; }
+  .table-wrap { overflow-x:auto; border:2px solid var(--ink); }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  thead tr { background:var(--ink); color:#fff; }
+  thead th { padding:12px 16px; text-align:left; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; font-weight:500; white-space:nowrap; }
+  tbody tr { border-bottom:1px solid var(--border); transition:background 0.1s; animation:rowIn 0.3s ease both; }
+  @keyframes rowIn { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
+  tbody tr:last-child { border-bottom:none; }
+  tbody tr:hover { background:var(--row-hover); }
+  tbody tr.row-flash { animation:rowFlash 1.2s ease both; }
+  @keyframes rowFlash { 0%{background:#e8e8e8}50%{background:#f5f5f5}100%{background:transparent} }
+  tbody td { padding:13px 16px; vertical-align:middle; }
+  .col-num  { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); text-align:center; width:36px; }
+  .col-date { font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); white-space:nowrap; }
+  .col-co   { font-weight:600; }
+  .col-city { font-family:'DM Mono',monospace; font-size:12px; color:#555; }
+  .pill { display:inline-block; padding:3px 10px; border-radius:2px; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; font-weight:500; white-space:nowrap; }
+  .p-yes     { background:var(--ink); color:#fff; }
+  .p-no      { background:#e0e0e0; color:#666; }
+  .p-pending { background:#f0f0f0; color:#999; border:1px solid #ddd; }
+  .p-r1      { background:#f5f5f5; color:#333; border:1px solid #ccc; }
+  .p-r2      { background:#e8e8e8; color:#222; }
+  .p-r3      { background:#d0d0d0; color:#111; }
+  .p-offer   { background:var(--ink); color:#fff; }
+  .p-reject  { background:#f0f0f0; color:#999; border:1px solid #e0e0e0; }
+  .icell     { display:flex; gap:4px; flex-wrap:wrap; }
+  .btn-del   { background:none; border:none; cursor:pointer; color:#ccc; font-size:14px; padding:2px 6px; border-radius:2px; transition:color 0.15s; }
+  .btn-del:hover { color:#111; }
+
+  .empty-state { text-align:center; padding:80px 40px; border:2px solid var(--ink); border-top:none; }
+  .empty-state .bign { font-family:'Bebas Neue',sans-serif; font-size:96px; line-height:1; color:#f0f0f0; margin-bottom:16px; }
+  .empty-state p { font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; }
+
+  /* MODAL */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:200; display:none; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:#fff; border:2px solid var(--ink); width:560px; max-width:95vw; max-height:90vh; overflow-y:auto; padding:32px; position:relative; }
+  .modal h2 { font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:0.05em; margin-bottom:24px; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:20px; }
+  .form-field { display:flex; flex-direction:column; gap:5px; }
+  .form-field label { font-family:'DM Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
+  .form-field input, .form-field select { border:1px solid var(--ink); padding:8px 10px; font-family:'DM Sans',sans-serif; font-size:13px; outline:none; background:#fff; border-radius:0; -webkit-appearance:none; }
+  .modal-footer { display:flex; gap:10px; justify-content:flex-end; padding-top:16px; border-top:1px solid var(--border); }
+  .btn-primary { background:var(--ink); color:#fff; border:none; padding:10px 24px; font-family:'DM Mono',monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; border-radius:2px; }
+  .btn-primary:hover { background:#333; }
+  .btn-x { position:absolute; top:14px; right:16px; background:none; border:none; font-size:20px; cursor:pointer; color:#999; }
+  .btn-x:hover { color:#111; }
+  .igroup { display:flex; gap:8px; }
+  .igroup label { display:flex; align-items:center; gap:5px; font-family:'DM Mono',monospace; font-size:11px; color:#555; cursor:pointer; }
+  .igroup input[type=checkbox] { width:14px; height:14px; accent-color:var(--ink); }
+
+  /* GMAIL SETUP MODAL */
+  .setup-steps { display:flex; flex-direction:column; gap:14px; margin-bottom:20px; }
+  .setup-step  { display:flex; gap:14px; align-items:flex-start; }
+  .snum { width:24px; height:24px; background:var(--ink); color:#fff; border-radius:50%; font-family:'DM Mono',monospace; font-size:11px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+  .sbody { flex:1; }
+  .sbody strong { display:block; font-size:13px; font-weight:600; margin-bottom:3px; }
+  .sbody p { font-size:12px; color:#666; line-height:1.5; }
+  .sbody code { background:#f0f0f0; padding:2px 6px; font-family:'DM Mono',monospace; font-size:11px; border-radius:2px; }
+  .scope-list { margin-top:6px; display:flex; flex-direction:column; gap:3px; }
+  .scope-item { font-family:'DM Mono',monospace; font-size:10px; color:#777; padding:3px 8px; background:#f5f5f5; border-radius:2px; }
+  .privacy-note { background:#f5f5f5; padding:12px 14px; margin-bottom:20px; font-family:'DM Mono',monospace; font-size:11px; color:#777; line-height:1.6; border-radius:2px; }
+
+  footer { border-top:1px solid var(--border); padding:20px 40px; display:flex; align-items:center; justify-content:space-between; font-family:'DM Mono',monospace; font-size:11px; color:#bbb; letter-spacing:0.06em; }
+
+  @media(max-width:768px) {
+    header { padding:12px 20px; height:auto; flex-wrap:wrap; gap:10px; }
+    main   { padding:24px 20px 60px; }
+    .form-grid { grid-template-columns:1fr; }
+    .stat-chip { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Trackly<span></span></div>
+  <div class="header-right">
+    <div class="stat-chip">Total <strong id="stat-total">0</strong></div>
+    <div class="stat-chip">Responded <strong id="stat-responded">0</strong></div>
+    <div class="stat-chip">Interviews <strong id="stat-interviews">0</strong></div>
+    <div class="stat-chip">Offers <strong id="stat-offers">0</strong></div>
+    <div id="gmail-status-wrap">
+      <button class="btn-gmail" id="btn-gmail-connect" onclick="openGmailSetup()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z" fill="white"/></svg>
+        Connect Gmail
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main>
+
+  <!-- GMAIL BANNER -->
+  <div class="gmail-banner" id="gmail-banner">
+    <div class="gmail-banner-left">
+      <div style="font-size:28px">✉️</div>
+      <div>
+        <h3>Connect Gmail to auto-update your tracker</h3>
+        <p>Trackly scans your inbox for rejections, interview invites &amp; offers — and updates the table automatically.</p>
+      </div>
+    </div>
+    <button class="btn-gmail" onclick="openGmailSetup()" style="flex-shrink:0">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z" fill="white"/></svg>
+      Set Up Gmail
+    </button>
+  </div>
+
+  <!-- EMAIL LOG (shown when connected) -->
+  <div id="email-log-wrap" style="display:none">
+    <button class="email-log-toggle" onclick="toggleLog()">
+      <span id="log-arrow">▶</span> Email Activity Log
+      <span id="log-badge" style="background:var(--ink);color:#fff;padding:1px 8px;border-radius:10px;font-size:9px;margin-left:4px;display:none">0</span>
+    </button>
+    <div class="email-log" id="email-log">
+      <div class="log-entry">
+        <span class="log-time">—</span>
+        <span class="log-tag info">Info</span>
+        <span class="log-msg">Waiting for first scan...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PASTE INPUT -->
+  <div class="input-section">
+    <div class="section-label">Paste job listing or application details</div>
+    <div class="input-row">
+      <textarea id="job-input" placeholder="Paste a job description, confirmation email, or any job details — Claude will extract the info automatically..."></textarea>
+      <button class="btn-add" id="btn-add" onclick="addJob()">
+        <span class="btn-icon">＋</span>
+        <span>Add Job</span>
+      </button>
+    </div>
+    <div class="progress-bar-wrap" id="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+    <div class="error-banner" id="error-banner"></div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-section">
+    <div class="table-header">
+      <div class="table-title">Applications</div>
+      <div class="table-actions">
+        <button class="btn-ghost" onclick="openAddManual()">+ Manual</button>
+        <button class="btn-ghost" id="btn-scan" style="display:none" onclick="scanEmails()">⟳ Scan Now</button>
+        <button class="btn-ghost" onclick="exportCSV()">Export CSV</button>
+        <button class="btn-ghost" onclick="clearAll()">Clear All</button>
+      </div>
+    </div>
+    <div id="table-container"></div>
+  </div>
+</main>
+
+<footer>
+  <span>Trackly — Job Application Tracker</span>
+  <div style="display:flex;gap:16px;align-items:center">
+    <span id="last-scan" style="font-size:10px"></span>
+    <span>Powered by Claude AI</span>
+  </div>
+</footer>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <button class="btn-x" onclick="closeModal()">×</button>
+    <h2 id="modal-title">Edit Application</h2>
+    <div class="form-grid">
+      <div class="form-field" style="grid-column:span 2"><label>Company</label><input type="text" id="f-company"/></div>
+      <div class="form-field" style="grid-column:span 2"><label>Role / Position</label><input type="text" id="f-role"/></div>
+      <div class="form-field"><label>Date Applied</label><input type="date" id="f-date"/></div>
+      <div class="form-field"><label>City</label><input type="text" id="f-city"/></div>
+      <div class="form-field"><label>Referral?</label><select id="f-referral"><option>No</option><option>Yes</option></select></div>
+      <div class="form-field"><label>Response?</label><select id="f-response"><option>Pending</option><option>Yes</option><option>No</option></select></div>
+      <div class="form-field" style="grid-column:span 2"><label>Interview Rounds</label><div class="igroup"><label><input type="checkbox" id="f-r1"> Round 1</label><label><input type="checkbox" id="f-r2"> Round 2</label><label><input type="checkbox" id="f-r3"> Round 3</label></div></div>
+      <div class="form-field" style="grid-column:span 2"><label>Final Decision</label><select id="f-decision"><option>Pending</option><option>Offer</option><option>Rejected</option><option>Withdrew</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- GMAIL SETUP MODAL -->
+<div class="modal-overlay" id="gmail-modal">
+  <div class="modal">
+    <button class="btn-x" onclick="closeGmailModal()">×</button>
+    <h2>Connect Gmail</h2>
+
+    <div class="setup-steps">
+      <div class="setup-step">
+        <div class="snum">1</div>
+        <div class="sbody">
+          <strong>Create a Google Cloud Project</strong>
+          <p>Go to <a href="https://console.cloud.google.com" target="_blank" style="color:var(--ink)">console.cloud.google.com</a>, create a project, and enable the <strong>Gmail API</strong> under APIs &amp; Services.</p>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="snum">2</div>
+        <div class="sbody">
+          <strong>Create OAuth 2.0 Credentials</strong>
+          <p>Under Credentials → Create OAuth Client ID (Web Application). Add this page's URL as an authorized origin and redirect URI.</p>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="snum">3</div>
+        <div class="sbody">
+          <strong>Required Scopes (read-only)</strong>
+          <div class="scope-list">
+            <div class="scope-item">https://www.googleapis.com/auth/gmail.readonly</div>
+            <div class="scope-item">https://www.googleapis.com/auth/gmail.metadata</div>
+          </div>
+        </div>
+      </div>
+      <div class="setup-step">
+        <div class="snum">4</div>
+        <div class="sbody">
+          <strong>Enter credentials below</strong>
+          <p>Your OAuth Client ID and Anthropic API Key are stored only in your browser.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field" style="grid-column:span 2">
+        <label>Google OAuth Client ID</label>
+        <input type="text" id="gmail-client-id" placeholder="xxxxxxxx.apps.googleusercontent.com" style="font-family:'DM Mono',monospace;font-size:12px"/>
+      </div>
+      <div class="form-field" style="grid-column:span 2">
+        <label>Anthropic API Key</label>
+        <input type="password" id="api-key-input" placeholder="sk-ant-..." style="font-family:'DM Mono',monospace;font-size:12px"/>
+      </div>
+      <div class="form-field" style="grid-column:span 2">
+        <label>Scan Frequency</label>
+        <select id="gmail-interval">
+          <option value="300000">Every 5 minutes</option>
+          <option value="600000" selected>Every 10 minutes</option>
+          <option value="1800000">Every 30 minutes</option>
+          <option value="3600000">Every hour</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="privacy-note">🔒 Trackly reads only email subjects and metadata — never full email body. Your API keys stay in your browser's localStorage and are never transmitted to any third-party server.</div>
+
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeGmailModal()">Cancel</button>
+      <button class="btn-primary" onclick="authorizeGmail()">Authorize with Google →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let apps      = JSON.parse(localStorage.getItem('trackly_apps') || '[]');
+let editingId = null;
+let isAdding  = false;
+let gmailToken = localStorage.getItem('trackly_gmail_token') || null;
+let scanTimer  = null;
+let logOpen    = false;
+let newLogCount = 0;
+
+function getApiKey() { return localStorage.getItem('trackly_api_key') || ''; }
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════
+function save() { localStorage.setItem('trackly_apps', JSON.stringify(apps)); render(); updateStats(); }
+
+function pill(v, t) {
+  if (t === 'yn')  return v === 'Yes' ? '<span class="pill p-yes">Yes</span>' : '<span class="pill p-no">No</span>';
+  if (t === 'res') return v === 'Yes' ? '<span class="pill p-yes">Yes</span>' : v === 'No' ? '<span class="pill p-no">No</span>' : '<span class="pill p-pending">Pending</span>';
+  if (t === 'dec') {
+    if (v === 'Offer')    return '<span class="pill p-offer">Offer ✓</span>';
+    if (v === 'Rejected') return '<span class="pill p-reject">Rejected</span>';
+    if (v === 'Withdrew') return '<span class="pill p-no">Withdrew</span>';
+    return '<span class="pill p-pending">Pending</span>';
+  }
+  return '';
+}
+
+function render() {
+  const c = document.getElementById('table-container');
+  if (!apps.length) {
+    c.innerHTML = `<div class="empty-state"><div class="bign">0</div><p>No applications yet — paste a listing above or connect Gmail</p></div>`;
+    return;
+  }
+  const rows = apps.map((a, i) => {
+    const iv = [a.round1?'<span class="pill p-r1">R1</span>':'', a.round2?'<span class="pill p-r2">R2</span>':'', a.round3?'<span class="pill p-r3">R3</span>':''].filter(Boolean).join('') || '<span style="color:#ccc;font-size:11px;font-family:DM Mono,monospace">—</span>';
+    return `<tr id="row-${a.id}">
+      <td class="col-num">${i+1}</td>
+      <td class="col-date">${a.date||'—'}</td>
+      <td class="col-co">${esc(a.company||'—')}</td>
+      <td style="color:#333;max-width:180px">${esc(a.role||'—')}</td>
+      <td>${pill(a.referral,'yn')}</td>
+      <td class="col-city">${esc(a.city||'—')}</td>
+      <td>${pill(a.response,'res')}</td>
+      <td><div class="icell">${iv}</div></td>
+      <td>${pill(a.decision,'dec')}</td>
+      <td><button class="btn-del" onclick="openEdit(${a.id})">✎</button><button class="btn-del" onclick="delApp(${a.id})">✕</button></td>
+    </tr>`;
+  }).join('');
+  c.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>#</th><th>Date Applied</th><th>Company</th><th>Role</th><th>Referral</th><th>City</th><th>Response</th><th>Interviews</th><th>Decision</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent      = apps.length;
+  document.getElementById('stat-responded').textContent  = apps.filter(a => a.response === 'Yes').length;
+  document.getElementById('stat-interviews').textContent = apps.filter(a => a.round1||a.round2||a.round3).length;
+  document.getElementById('stat-offers').textContent     = apps.filter(a => a.decision === 'Offer').length;
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ═══════════════════════════════════════════════════════════════
+// TOASTS + NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════════
+function showToast(label, title, body) {
+  if (Notification.permission === 'default') Notification.requestPermission();
+  if (Notification.permission === 'granted') new Notification(`Trackly — ${title}`, { body });
+
+  const wrap = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<button class="toast-close" onclick="this.closest('.toast').remove()">×</button>
+    <div class="toast-label">${esc(label)}</div>
+    <div class="toast-title">${esc(title)}</div>
+    ${body ? `<div class="toast-body">${esc(body)}</div>` : ''}`;
+  wrap.appendChild(el);
+  setTimeout(() => { el.style.animation='toastOut 0.3s ease forwards'; setTimeout(()=>el.remove(),300); }, 5000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EMAIL LOG
+// ═══════════════════════════════════════════════════════════════
+function addLog(type, msg) {
+  const log = document.getElementById('email-log');
+  const ph  = log.querySelector('.log-msg');
+  if (ph && ph.textContent === 'Waiting for first scan...') ph.closest('.log-entry').remove();
+  const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const tagMap = {rejection:'rejection',interview:'interview',offer:'offer',info:'info'};
+  const labMap = {rejection:'Rejection',interview:'Interview',offer:'Offer',info:'Info'};
+  const div = document.createElement('div');
+  div.className = 'log-entry';
+  div.innerHTML = `<span class="log-time">${t}</span><span class="log-tag ${tagMap[type]||'info'}">${labMap[type]||'Info'}</span><span class="log-msg">${esc(msg)}</span>`;
+  log.insertBefore(div, log.firstChild);
+  if (type !== 'info') {
+    newLogCount++;
+    const b = document.getElementById('log-badge');
+    b.textContent = newLogCount;
+    b.style.display = 'inline-block';
+  }
+}
+
+function toggleLog() {
+  logOpen = !logOpen;
+  document.getElementById('email-log').classList.toggle('open', logOpen);
+  document.getElementById('log-arrow').textContent = logOpen ? '▼' : '▶';
+  if (logOpen) { newLogCount=0; document.getElementById('log-badge').style.display='none'; }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// GMAIL AUTH
+// ═══════════════════════════════════════════════════════════════
+function openGmailSetup() {
+  document.getElementById('gmail-modal').classList.add('open');
+  const cid = localStorage.getItem('trackly_gmail_client_id');
+  if (cid) document.getElementById('gmail-client-id').value = cid;
+  const key = localStorage.getItem('trackly_api_key');
+  if (key) document.getElementById('api-key-input').value = key;
+  const iv = localStorage.getItem('trackly_scan_interval');
+  if (iv) document.getElementById('gmail-interval').value = iv;
+}
+function closeGmailModal() { document.getElementById('gmail-modal').classList.remove('open'); }
+
+function authorizeGmail() {
+  const clientId = document.getElementById('gmail-client-id').value.trim();
+  const apiKey   = document.getElementById('api-key-input').value.trim();
+  const interval = document.getElementById('gmail-interval').value;
+  if (!clientId) { alert('Please enter your Google OAuth Client ID.'); return; }
+  if (!apiKey)   { alert('Please enter your Anthropic API Key.'); return; }
+  localStorage.setItem('trackly_gmail_client_id', clientId);
+  localStorage.setItem('trackly_api_key', apiKey);
+  localStorage.setItem('trackly_scan_interval', interval);
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: window.location.origin + window.location.pathname,
+    response_type: 'token',
+    scope: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.metadata',
+    prompt: 'consent',
+  });
+  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+}
+
+function handleOAuthCallback() {
+  const hash = window.location.hash.substring(1);
+  if (!hash) return;
+  const p = new URLSearchParams(hash);
+  const token = p.get('access_token');
+  if (!token) return;
+  gmailToken = token;
+  const exp = parseInt(p.get('expires_in') || '3600');
+  localStorage.setItem('trackly_gmail_token', token);
+  localStorage.setItem('trackly_gmail_token_expiry', Date.now() + exp * 1000);
+  history.replaceState(null, '', window.location.pathname);
+  onGmailConnected();
+}
+
+function onGmailConnected() {
+  document.getElementById('gmail-banner').style.display = 'none';
+  document.getElementById('email-log-wrap').style.display = 'block';
+  document.getElementById('btn-scan').style.display = 'inline-block';
+  document.getElementById('gmail-modal').classList.remove('open');
+  document.getElementById('gmail-status-wrap').innerHTML = `
+    <div class="gmail-status">
+      <div class="status-dot connected" id="sdot"></div>
+      <span id="stext">Gmail Connected</span>
+      <button style="background:none;border:none;color:#bbb;cursor:pointer;font-size:11px;padding:0 0 0 4px" onclick="disconnectGmail()" title="Disconnect">✕</button>
+    </div>`;
+  if (Notification.permission === 'default') Notification.requestPermission();
+  startScanning();
+}
+
+function disconnectGmail() {
+  if (!confirm('Disconnect Gmail?')) return;
+  gmailToken = null;
+  ['trackly_gmail_token','trackly_gmail_token_expiry','trackly_last_scan_date'].forEach(k => localStorage.removeItem(k));
+  if (scanTimer) clearInterval(scanTimer);
+  location.reload();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EMAIL SCANNING
+// ═══════════════════════════════════════════════════════════════
+function startScanning() {
+  const iv = parseInt(localStorage.getItem('trackly_scan_interval') || '600000');
+  scanEmails();
+  scanTimer = setInterval(scanEmails, iv);
+}
+
+async function scanEmails() {
+  if (!gmailToken) return;
+  const expiry = parseInt(localStorage.getItem('trackly_gmail_token_expiry') || '0');
+  if (Date.now() > expiry) { addLog('info', 'Gmail token expired — please reconnect.'); return; }
+
+  setScanningState(true);
+  addLog('info', 'Scanning inbox...');
+
+  try {
+    const lastDate = localStorage.getItem('trackly_last_scan_date') || new Date(Date.now() - 7*24*60*60*1000).toISOString().split('T')[0];
+    const q = encodeURIComponent([
+      'subject:(interview OR "thank you for applying" OR "application received" OR "next steps"',
+      'OR "we regret" OR "unfortunately" OR "not moving forward" OR "position has been filled"',
+      'OR "pleased to offer" OR "offer of employment" OR "decision" OR "update on your application")',
+      `after:${lastDate.replace(/-/g,'/')}`
+    ].join(' '));
+
+    const r = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${q}&maxResults=15`, {
+      headers: { Authorization: `Bearer ${gmailToken}` }
+    });
+
+    if (!r.ok) {
+      if (r.status === 401) { addLog('info', 'Session expired — please reconnect Gmail.'); return; }
+      throw new Error(`Gmail API ${r.status}`);
+    }
+
+    const data = await r.json();
+    const msgs = data.messages || [];
+    if (!msgs.length) { addLog('info', 'No new relevant emails.'); }
+    else {
+      addLog('info', `Found ${msgs.length} candidate email(s) — analyzing...`);
+      for (const m of msgs.slice(0, 6)) {
+        await processEmail(m.id);
+        await delay(400);
+      }
+    }
+
+    localStorage.setItem('trackly_last_scan_date', new Date().toISOString().split('T')[0]);
+    document.getElementById('last-scan').textContent = 'Last scan: ' + new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  } catch(e) {
+    addLog('info', 'Scan error: ' + e.message);
+  } finally {
+    setScanningState(false);
+  }
+}
+
+async function processEmail(msgId) {
+  const done = JSON.parse(localStorage.getItem('trackly_done_emails') || '[]');
+  if (done.includes(msgId)) return;
+
+  const r = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`, {
+    headers: { Authorization: `Bearer ${gmailToken}` }
+  });
+  if (!r.ok) return;
+
+  const msg  = await r.json();
+  const hdrs = msg.payload?.headers || [];
+  const sub  = hdrs.find(h=>h.name==='Subject')?.value || '';
+  const from = hdrs.find(h=>h.name==='From')?.value    || '';
+  const date = hdrs.find(h=>h.name==='Date')?.value    || '';
+
+  const appsJson = JSON.stringify(apps.map(a=>({id:a.id, company:a.company, role:a.role})));
+  const prompt = `You are an email classifier for a job tracker. Analyze this email and return ONLY valid JSON.
+
+Email:
+Subject: "${sub}"
+From: "${from}"
+Date: "${date}"
+
+Tracked applications: ${appsJson}
+
+Return ONLY this JSON (no extra text, no backticks):
+{
+  "isJobRelated": true/false,
+  "emailType": "rejection"|"interview_invite"|"offer"|"info"|"not_related",
+  "matchedAppId": <number id or null>,
+  "matchedCompany": "<company name>",
+  "summary": "<one brief sentence>",
+  "updates": {
+    "response": "Yes"|"No"|"Pending"|null,
+    "round1": true|false|null,
+    "round2": true|false|null,
+    "round3": true|false|null,
+    "decision": "Pending"|"Offer"|"Rejected"|null
+  }
+}`;
+
+  try {
+    const apiKey = getApiKey();
+    if (!apiKey) return;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 32000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    if (!res.ok) return;
+    const d = await res.json();
+    const raw = d.content.find(b=>b.type==='text')?.text || '';
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (!m) return;
+
+    const result = JSON.parse(m[0]);
+    if (!result.isJobRelated || result.emailType === 'not_related') return;
+
+    // Mark processed
+    done.push(msgId);
+    localStorage.setItem('trackly_done_emails', JSON.stringify(done.slice(-300)));
+
+    // Apply updates
+    let updated = false;
+    if (result.matchedAppId != null) {
+      const idx = apps.findIndex(a => a.id === result.matchedAppId);
+      if (idx !== -1) {
+        const u = result.updates || {};
+        if (u.response !== null && u.response !== undefined) apps[idx].response = u.response;
+        if (u.round1   !== null && u.round1   !== undefined) apps[idx].round1   = u.round1;
+        if (u.round2   !== null && u.round2   !== undefined) apps[idx].round2   = u.round2;
+        if (u.round3   !== null && u.round3   !== undefined) apps[idx].round3   = u.round3;
+        if (u.decision !== null && u.decision !== undefined) apps[idx].decision = u.decision;
+        updated = true;
+      }
+    }
+    save();
+
+    // Log
+    const logTypeMap = { rejection:'rejection', interview_invite:'interview', offer:'offer', info:'info' };
+    const logType = logTypeMap[result.emailType] || 'info';
+    const co = result.matchedCompany || 'Unknown';
+    addLog(logType, `${co}: ${result.summary}${updated ? ' — tracker updated.' : ''}`);
+
+    // Toast
+    const toastLabelMap = { rejection:'❌ Rejection', interview_invite:'📅 Interview', offer:'🎉 Offer Received', info:'📧 Update' };
+    showToast(toastLabelMap[result.emailType] || '📧 Update', co, result.summary + (updated ? ' Tracker updated.' : ''));
+
+    // Flash row
+    if (result.matchedAppId != null) {
+      setTimeout(() => {
+        const row = document.getElementById(`row-${result.matchedAppId}`);
+        if (row) { row.classList.add('row-flash'); setTimeout(()=>row.classList.remove('row-flash'),1200); }
+      }, 120);
+    }
+  } catch(e) { console.error('processEmail:', e); }
+}
+
+function setScanningState(on) {
+  const dot  = document.getElementById('sdot');
+  const text = document.getElementById('stext');
+  if (!dot) return;
+  dot.className = 'status-dot ' + (on ? 'scanning' : 'connected');
+  if (text) text.textContent = on ? 'Scanning...' : 'Gmail Connected';
+}
+
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+// ═══════════════════════════════════════════════════════════════
+// ADD JOB FROM PASTE (Claude)
+// ═══════════════════════════════════════════════════════════════
+async function addJob() {
+  if (isAdding) return;
+  const input = document.getElementById('job-input');
+  const text  = input.value.trim();
+  if (!text) { showErr('Please paste some job details first.'); return; }
+
+  setLoading(true); hideErr();
+
+  const apiKey = getApiKey() || prompt('Enter your Anthropic API Key (stored locally):');
+  if (!apiKey) { setLoading(false); return; }
+  localStorage.setItem('trackly_api_key', apiKey);
+
+  const prompt_text = `Extract job application fields from the text below. Return ONLY a JSON object, no markdown, no extra text.
+
+Fields:
+- company: string or "Unknown"
+- role: string or "Unknown"
+- date: YYYY-MM-DD (use today ${new Date().toISOString().split('T')[0]} if not found)
+- city: string or "Remote" or "Unknown"
+- referral: "Yes" or "No"
+- response: "Yes", "No", or "Pending"
+- round1: true or false
+- round2: true or false
+- round3: true or false
+- decision: "Pending", "Offer", "Rejected", or "Withdrew"
+
+Text:
+"""${text}"""
+
+Return ONLY the JSON.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:32000, messages:[{role:'user',content:prompt_text}] })
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>{}); throw new Error(e?.error?.message || `API ${res.status}`); }
+    const d = await res.json();
+    const raw = d.content.find(b=>b.type==='text')?.text || '';
+    const jm  = raw.match(/\{[\s\S]*\}/);
+    if (!jm) throw new Error('Could not parse Claude response.');
+    const p = JSON.parse(jm[0]);
+    apps.unshift({ id:Date.now(), company:p.company||'Unknown', role:p.role||'Unknown', date:p.date||new Date().toISOString().split('T')[0], city:p.city||'Unknown', referral:p.referral||'No', response:p.response||'Pending', round1:!!p.round1, round2:!!p.round2, round3:!!p.round3, decision:p.decision||'Pending' });
+    save(); input.value = '';
+  } catch(e) { showErr('Error: ' + e.message); console.error(e); }
+  finally { setLoading(false); }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════════════
+function setLoading(on) {
+  isAdding = on;
+  const btn = document.getElementById('btn-add');
+  const pw  = document.getElementById('progress-wrap');
+  const pb  = document.getElementById('progress-bar');
+  if (on) {
+    btn.innerHTML = '<div class="spinner"></div><span>Reading...</span>';
+    btn.disabled = true; pw.classList.add('visible'); pb.style.width = '0%';
+    let w = 0; btn._iv = setInterval(()=>{ w=Math.min(w+Math.random()*12,88); pb.style.width=w+'%'; },300);
+  } else {
+    clearInterval(btn._iv); pb.style.width = '100%';
+    setTimeout(()=>{ btn.innerHTML='<span class="btn-icon">＋</span><span>Add Job</span>'; btn.disabled=false; pw.classList.remove('visible'); pb.style.width='0%'; },400);
+  }
+}
+function showErr(m) { const e=document.getElementById('error-banner'); e.textContent=m; e.style.display='block'; }
+function hideErr()  { document.getElementById('error-banner').style.display='none'; }
+
+// ═══════════════════════════════════════════════════════════════
+// CRUD
+// ═══════════════════════════════════════════════════════════════
+function delApp(id) { apps = apps.filter(a=>a.id!==id); save(); }
+function clearAll() { if (!apps.length) return; if (confirm('Clear all applications?')) { apps=[]; save(); } }
+
+// ═══════════════════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════════════════
+function openEdit(id) {
+  const a = apps.find(x=>x.id===id); if (!a) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Edit Application';
+  ['company','role','date','city'].forEach(k => document.getElementById('f-'+k).value = a[k]||'');
+  document.getElementById('f-referral').value = a.referral||'No';
+  document.getElementById('f-response').value = a.response||'Pending';
+  document.getElementById('f-r1').checked = !!a.round1;
+  document.getElementById('f-r2').checked = !!a.round2;
+  document.getElementById('f-r3').checked = !!a.round3;
+  document.getElementById('f-decision').value = a.decision||'Pending';
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function openAddManual() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Add Manually';
+  ['company','role','city'].forEach(k => document.getElementById('f-'+k).value = '');
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('f-referral').value = 'No';
+  document.getElementById('f-response').value = 'Pending';
+  ['f-r1','f-r2','f-r3'].forEach(id => document.getElementById(id).checked = false);
+  document.getElementById('f-decision').value = 'Pending';
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('edit-modal').classList.remove('open'); editingId=null; }
+
+function saveModal() {
+  const entry = {
+    id:       editingId || Date.now(),
+    company:  document.getElementById('f-company').value.trim() || 'Unknown',
+    role:     document.getElementById('f-role').value.trim()    || 'Unknown',
+    date:     document.getElementById('f-date').value           || new Date().toISOString().split('T')[0],
+    city:     document.getElementById('f-city').value.trim()    || 'Unknown',
+    referral: document.getElementById('f-referral').value,
+    response: document.getElementById('f-response').value,
+    round1:   document.getElementById('f-r1').checked,
+    round2:   document.getElementById('f-r2').checked,
+    round3:   document.getElementById('f-r3').checked,
+    decision: document.getElementById('f-decision').value,
+  };
+  if (editingId) { const idx = apps.findIndex(a=>a.id===editingId); if (idx!==-1) apps[idx]=entry; }
+  else apps.unshift(entry);
+  save(); closeModal();
+}
+
+document.getElementById('edit-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeModal(); });
+document.getElementById('gmail-modal').addEventListener('click', e => { if (e.target===e.currentTarget) closeGmailModal(); });
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════════════════
+function exportCSV() {
+  if (!apps.length) return;
+  const h = ['#','Date Applied','Company','Role','Referral','City','Response','R1','R2','R3','Decision'];
+  const rows = apps.map((a,i) => [i+1,a.date,a.company,a.role,a.referral,a.city,a.response,a.round1?'Yes':'No',a.round2?'Yes':'No',a.round3?'Yes':'No',a.decision].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv  = [h.join(','), ...rows].join('\n');
+  const url  = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'trackly_applications.csv'; a.click(); URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+handleOAuthCallback();
+
+if (gmailToken) {
+  const exp = parseInt(localStorage.getItem('trackly_gmail_token_expiry') || '0');
+  if (Date.now() < exp) onGmailConnected();
+  else { localStorage.removeItem('trackly_gmail_token'); gmailToken = null; }
+}
+
+render(); updateStats();
+
+document.getElementById('job-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addJob();
+});
+</script>
+</body>
+</html>
