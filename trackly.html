@@ -1521,6 +1521,7 @@ function changeName() {
   }, current);
 }
 
+function renderGreeting(name) {
   const hour = new Date().getHours();
 
   // Morning greetings (before 12)
@@ -1637,6 +1638,12 @@ function enterApp() {
   setTimeout(() => {
     landing.style.display = 'none';
     document.getElementById('li-quick-btn').style.display = 'flex';
+    // If no name yet, prompt now
+    if (!getUserName()) {
+      setTimeout(() => {
+        promptForName((name) => { renderGreeting(name); });
+      }, 200);
+    }
   }, 650);
 }
 
@@ -1736,14 +1743,9 @@ const _savedName = getUserName();
 if (_savedName) {
   renderGreeting(_savedName);
 } else {
-  // No name yet — show prompt after a brief delay so landing page renders first
+  // No name yet — greeting will be set after enterApp → promptForName
   document.getElementById('greeting-text').textContent = '';
   document.getElementById('greeting-sub').textContent  = '';
-  setTimeout(() => {
-    promptForName((name) => {
-      renderGreeting(name);
-    });
-  }, 400);
 }
 
 initLanding();
