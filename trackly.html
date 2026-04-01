@@ -876,6 +876,7 @@ footer {
   <div class="footer-logo">Trackly<span style="font-family:'DM Mono',monospace;font-size:10px;font-weight:400;color:var(--muted);margin-left:8px">Because applying to jobs shouldn't feel like a second job.</span></div>
   <div style="display:flex;gap:16px;align-items:center">
     <span id="last-scan"></span>
+    <button onclick="changeName()" style="background:none;border:none;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:0.06em;transition:color 0.15s;padding:0" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--muted)'">✎ Change name</button>
     <span>Powered by Claude AI ✦</span>
   </div>
 </footer>
@@ -1454,7 +1455,7 @@ function getUserName() {
   return localStorage.getItem('trackly_user_name') || null;
 }
 
-function promptForName(callback) {
+function promptForName(callback, prefill) {
   // Create inline name modal
   const overlay = document.createElement('div');
   overlay.style.cssText = `position:fixed;inset:0;background:rgba(26,26,46,0.5);z-index:600;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:modalBgIn 0.2s ease both`;
@@ -1489,7 +1490,11 @@ function promptForName(callback) {
         onclick="submitName()">Let's go →</button>
     </div>`;
   document.body.appendChild(overlay);
-  setTimeout(() => document.getElementById('name-input').focus(), 100);
+  setTimeout(() => {
+    const inp = document.getElementById('name-input');
+    inp.focus();
+    if (prefill) { inp.value = prefill; inp.select(); }
+  }, 100);
 
   window._nameCallback = callback;
   window._nameOverlay  = overlay;
@@ -1508,7 +1513,14 @@ function submitName() {
   setTimeout(() => { window._nameOverlay.remove(); window._nameCallback(val); }, 300);
 }
 
-function renderGreeting(name) {
+function changeName() {
+  const current = getUserName() || '';
+  promptForName((newName) => {
+    renderGreeting(newName);
+    showToast('✎ Name updated', `Hi, ${newName}!`, 'Your greeting has been updated.');
+  }, current);
+}
+
   const hour = new Date().getHours();
 
   // Morning greetings (before 12)
