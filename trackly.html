@@ -855,6 +855,10 @@ footer {
 
   <!-- TABLE -->
   <div class="table-section">
+
+    <!-- STATS BAR -->
+    <div id="stats-bar" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px"></div>
+
     <div class="table-header">
       <div class="table-title-wrap">
         <div class="table-title">Applications</div>
@@ -868,6 +872,33 @@ footer {
         <button class="btn-secondary" onclick="clearAll()" style="color:var(--accent1);border-color:var(--accent1)" onmouseover="this.style.background='var(--accent1)';this.style.color='#fff'" onmouseout="this.style.background='';this.style.color='var(--accent1)'">Clear All</button>
       </div>
     </div>
+
+    <!-- SEARCH + FILTER ROW -->
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+      <div style="flex:1;min-width:220px;position:relative">
+        <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none" width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="var(--muted)" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="search-input" type="text" placeholder="Search company, role, or city..."
+          oninput="applyFilters()"
+          style="width:100%;border:1.5px solid var(--border);border-radius:100px;padding:9px 16px 9px 34px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;background:var(--surface);color:var(--ink);transition:border-color 0.2s,box-shadow 0.2s"
+          onfocus="this.style.borderColor='var(--ink)';this.style.boxShadow='0 0 0 3px rgba(26,26,46,0.07)'"
+          onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"/>
+      </div>
+      <select id="filter-response" onchange="applyFilters()" style="border:1.5px solid var(--border);border-radius:100px;padding:9px 16px;font-family:'DM Mono',monospace;font-size:11px;outline:none;background:var(--surface);color:var(--ink);cursor:pointer;letter-spacing:0.04em">
+        <option value="">All Responses</option>
+        <option value="Pending">Pending</option>
+        <option value="Yes">Heard Back</option>
+        <option value="No">No Response</option>
+      </select>
+      <select id="filter-decision" onchange="applyFilters()" style="border:1.5px solid var(--border);border-radius:100px;padding:9px 16px;font-family:'DM Mono',monospace;font-size:11px;outline:none;background:var(--surface);color:var(--ink);cursor:pointer;letter-spacing:0.04em">
+        <option value="">All Decisions</option>
+        <option value="Pending">Pending</option>
+        <option value="Offer">Offer</option>
+        <option value="Rejected">Rejected</option>
+        <option value="Withdrew">Withdrew</option>
+      </select>
+      <button onclick="clearFilters()" id="clear-filters-btn" style="display:none;background:none;border:1.5px solid var(--accent1);color:var(--accent1);border-radius:100px;padding:8px 14px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.15s" onmouseover="this.style.background='var(--accent1)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='var(--accent1)'">✕ Clear</button>
+    </div>
+
     <div id="table-container"></div>
   </div>
 </main>
@@ -981,14 +1012,57 @@ function pill(v, t) {
   return '';
 }
 
+let filteredApps = null; // null = show all
+
+function getVisibleApps() { return filteredApps !== null ? filteredApps : apps; }
+
+function applyFilters() {
+  const q       = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+  const resp    = document.getElementById('filter-response')?.value || '';
+  const dec     = document.getElementById('filter-decision')?.value || '';
+  const hasFilter = q || resp || dec;
+  document.getElementById('clear-filters-btn').style.display = hasFilter ? 'block' : 'none';
+
+  if (!hasFilter) { filteredApps = null; }
+  else {
+    filteredApps = apps.filter(a => {
+      const matchQ = !q || [a.company, a.role, a.city].some(f => (f||'').toLowerCase().includes(q));
+      const matchR = !resp || a.response === resp;
+      const matchD = !dec  || a.decision === dec;
+      return matchQ && matchR && matchD;
+    });
+  }
+  render();
+}
+
+function clearFilters() {
+  document.getElementById('search-input').value = '';
+  document.getElementById('filter-response').value = '';
+  document.getElementById('filter-decision').value = '';
+  filteredApps = null;
+  document.getElementById('clear-filters-btn').style.display = 'none';
+  render();
+}
+
 function render() {
+  const visible = getVisibleApps();
   const c = document.getElementById('table-container');
-  document.getElementById('table-count').textContent = apps.length ? `${apps.length} application${apps.length===1?'':'s'}` : '';
+  const isFiltered = filteredApps !== null;
+  const countText = isFiltered
+    ? `${visible.length} of ${apps.length} application${apps.length===1?'':'s'}`
+    : apps.length ? `${apps.length} application${apps.length===1?'':'s'}` : '';
+  document.getElementById('table-count').textContent = countText;
+
   if (!apps.length) {
     c.innerHTML = `<div class="table-surface"><div class="empty-state"><div class="empty-blob">🚀</div><div class="empty-title">Ready for launch</div><div class="empty-sub">Paste a job listing, import your spreadsheet, or add manually</div></div></div>`;
     return;
   }
-  const rows = apps.map((a, i) => {
+  if (isFiltered && !visible.length) {
+    c.innerHTML = `<div class="table-surface"><div class="empty-state"><div class="empty-blob" style="background:linear-gradient(135deg,var(--accent5),var(--accent6))">🔍</div><div class="empty-title">No matches found</div><div class="empty-sub">Try a different search term or clear the filters</div></div></div>`;
+    return;
+  }
+
+  const rows = visible.map((a, i) => {
     const iv = [
       a.round1 ? '<span class="pill p-r1">R1</span>' : '',
       a.round2 ? '<span class="pill p-r2">R2</span>' : '',
@@ -1020,11 +1094,39 @@ function render() {
 }
 
 function updateStats() {
-  document.getElementById('stat-total').textContent      = apps.length;
-  document.getElementById('stat-responded').textContent  = apps.filter(a=>a.response==='Yes').length;
-  document.getElementById('stat-interviews').textContent = apps.filter(a=>a.round1||a.round2||a.round3).length;
-  document.getElementById('stat-offers').textContent     = apps.filter(a=>a.decision==='Offer').length;
+  const total       = apps.length;
+  const responded   = apps.filter(a => a.response === 'Yes').length;
+  const interviews  = apps.filter(a => a.round1||a.round2||a.round3).length;
+  const offers      = apps.filter(a => a.decision === 'Offer').length;
+  const rejected    = apps.filter(a => a.decision === 'Rejected').length;
+  const pending     = apps.filter(a => a.decision === 'Pending').length;
+  const respRate    = total ? Math.round((responded / total) * 100) : 0;
+  const intRate     = responded ? Math.round((interviews / responded) * 100) : 0;
+  const offerRate   = interviews ? Math.round((offers / interviews) * 100) : 0;
+
+  // Header stat pills
+  document.getElementById('stat-total').textContent      = total;
+  document.getElementById('stat-responded').textContent  = responded;
+  document.getElementById('stat-interviews').textContent = interviews;
+  document.getElementById('stat-offers').textContent     = offers;
+
+  // Stats insight bar
+  if (!total) { document.getElementById('stats-bar').innerHTML = ''; return; }
+
+  const statCard = (label, value, sub, color) => `
+    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 18px;border-top:3px solid ${color}">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">${label}</div>
+      <div style="font-family:'Lora',Georgia,serif;font-size:28px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;line-height:1">${value}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:5px;letter-spacing:0.04em">${sub}</div>
+    </div>`;
+
+  document.getElementById('stats-bar').innerHTML = [
+    statCard('Response Rate',    `${respRate}%`,  `${responded} of ${total} heard back`,           '#4ECDC4'),
+    statCard('Interview Rate',   `${intRate}%`,   responded ? `${interviews} of ${responded} responses led to interviews` : 'No responses yet', '#FFAB91'),
+    statCard('Offer Rate',       `${offerRate}%`, interviews ? `${offers} of ${interviews} interviews became offers` : 'No interviews yet',   '#DDA0DD'),
+  ].join('');
 }
+
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
