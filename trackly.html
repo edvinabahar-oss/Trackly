@@ -484,6 +484,121 @@ footer {
 .footer-logo { font-family: 'Lora', Georgia, serif; font-size: 13px; font-weight: 800; color: var(--ink); }
 
 
+/* ── LANDING PAGE ── */
+#landing {
+  position: fixed; inset: 0; z-index: 500;
+  background: var(--canvas);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 40px 24px;
+  text-align: center;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+#landing.hidden {
+  opacity: 0; transform: translateY(-20px); pointer-events: none;
+}
+.landing-logo {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; margin-bottom: 28px;
+  animation: landingFadeUp 0.7s ease both;
+}
+.landing-logo-text {
+  font-family: 'Lora', Georgia, serif;
+  font-size: 42px; font-weight: 700;
+  color: var(--ink); letter-spacing: -0.03em;
+}
+.landing-tagline {
+  font-family: 'DM Mono', monospace;
+  font-size: 13px; color: var(--muted);
+  letter-spacing: 0.06em; margin-bottom: 52px;
+  animation: landingFadeUp 0.7s 0.1s ease both;
+}
+.landing-phrase {
+  font-family: 'Lora', Georgia, serif;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 600; font-style: italic;
+  color: var(--ink); letter-spacing: -0.02em;
+  line-height: 1.2; margin-bottom: 48px;
+  max-width: 640px;
+  animation: landingFadeUp 0.7s 0.2s ease both;
+  min-height: 3em;
+  display: flex; align-items: center; justify-content: center;
+}
+.landing-actions {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 16px;
+  animation: landingFadeUp 0.7s 0.35s ease both;
+}
+.btn-start {
+  background: var(--ink); color: #fff;
+  border: none; padding: 18px 56px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px; letter-spacing: 0.16em;
+  text-transform: uppercase; cursor: pointer;
+  border-radius: 100px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(26,26,46,0.2);
+}
+.btn-start:hover {
+  background: #2d2d4e;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(26,26,46,0.28);
+}
+.landing-linkedin-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; color: var(--muted);
+  letter-spacing: 0.08em;
+  display: flex; align-items: center; gap: 8px;
+}
+.landing-linkedin-hint a {
+  color: var(--ink); text-decoration: underline;
+  text-underline-offset: 3px; cursor: pointer;
+}
+.landing-dots {
+  display: flex; gap: 8px; margin-top: 48px;
+  animation: landingFadeUp 0.7s 0.45s ease both;
+}
+.landing-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--border); cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+.landing-dot.active { background: var(--ink); transform: scale(1.3); }
+
+@keyframes landingFadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* LinkedIn quick-add floating button (on tracker page) */
+#li-quick-btn {
+  position: fixed; bottom: 32px; right: 32px; z-index: 90;
+  background: #0A66C2; color: #fff;
+  border: none; border-radius: 100px;
+  padding: 14px 22px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase; cursor: pointer;
+  display: none; align-items: center; gap: 8px;
+  box-shadow: 0 4px 20px rgba(10,102,194,0.35);
+  transition: all 0.2s;
+}
+#li-quick-btn:hover { background: #004182; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(10,102,194,0.4); }
+#li-quick-btn svg { flex-shrink: 0; }
+
+/* LinkedIn paste modal */
+#li-modal .modal { max-width: 480px; }
+.li-url-row { display: flex; gap: 0; border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; transition: border-color 0.2s; }
+.li-url-row:focus-within { border-color: #0A66C2; }
+.li-url-row input { flex: 1; border: none; outline: none; padding: 12px 16px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; background: var(--canvas); }
+.li-url-row button { background: #0A66C2; color: #fff; border: none; padding: 0 20px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; white-space: nowrap; transition: background 0.15s; }
+.li-url-row button:hover { background: #004182; }
+.li-or { text-align: center; font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 0.1em; margin: 16px 0; position: relative; }
+.li-or::before, .li-or::after { content: ''; position: absolute; top: 50%; width: 42%; height: 1px; background: var(--border); }
+.li-or::before { left: 0; } .li-or::after { right: 0; }
+
+@keyframes modalBgIn { from{opacity:0} to{opacity:1} }
+
 @media(max-width:900px) {
   header { padding: 12px 20px; height: auto; flex-wrap: wrap; gap: 10px; }
   main { padding: 20px 16px 60px; }
@@ -497,7 +612,99 @@ footer {
 
 <div id="toast-container"></div>
 
-<!-- ── HEADER ── -->
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- LANDING PAGE                                        -->
+<!-- ═══════════════════════════════════════════════════ -->
+<div id="landing">
+
+  <!-- Logo -->
+  <div class="landing-logo">
+    <svg width="52" height="52" viewBox="0 0 40 40" fill="none">
+      <ellipse cx="20" cy="7"  rx="4" ry="8" fill="#F5D0C5"/>
+      <ellipse cx="20" cy="7"  rx="4" ry="8" fill="#FADADD" transform="rotate(45 20 20)"/>
+      <ellipse cx="20" cy="7"  rx="4" ry="8" fill="#F5D0C5" transform="rotate(90 20 20)"/>
+      <ellipse cx="20" cy="7"  rx="4" ry="8" fill="#FADADD" transform="rotate(135 20 20)"/>
+      <ellipse cx="20" cy="7"  rx="4" ry="8" fill="#F5D0C5" transform="rotate(180 20 20)"/>
+      <ellipse cx="20" cy="7"  rx="4" ry="8" fill="#FADADD" transform="rotate(225 20 20)"/>
+      <ellipse cx="20" cy="7"  rx="4" ry="8" fill="#F5D0C5" transform="rotate(270 20 20)"/>
+      <ellipse cx="20" cy="7"  rx="4" ry="8" fill="#FADADD" transform="rotate(315 20 20)"/>
+      <circle cx="20" cy="20" r="7.5" fill="#FFAB91"/>
+      <circle cx="20" cy="20" r="5"   fill="#FF7043"/>
+      <circle cx="18.5" cy="18.5" r="1.4" fill="white" opacity="0.5"/>
+      <rect x="31.4" y="5"    width="2"  height="10" rx="1" fill="#4ECDC4"/>
+      <rect x="27"   y="9.4"  width="10" height="2"  rx="1" fill="#4ECDC4"/>
+      <rect x="31.4" y="5"    width="2"  height="10" rx="1" fill="#4ECDC4" opacity="0.4" transform="rotate(45 32.4 10)"/>
+      <rect x="27"   y="9.4"  width="10" height="2"  rx="1" fill="#4ECDC4" opacity="0.4" transform="rotate(45 32.4 10)"/>
+    </svg>
+    <div class="landing-logo-text">Trackly</div>
+  </div>
+
+  <!-- Tagline -->
+  <div class="landing-tagline">Because applying to jobs shouldn't feel like a second job.</div>
+
+  <!-- Rotating motivational phrase -->
+  <div class="landing-phrase" id="landing-phrase">Let's get this job.</div>
+
+  <!-- CTA -->
+  <div class="landing-actions">
+    <button class="btn-start" onclick="enterApp()">Start →</button>
+    <div class="landing-linkedin-hint">
+      Applying on LinkedIn? <a onclick="openLiModal()">Add directly to Trackly</a>
+    </div>
+  </div>
+
+  <!-- Phrase dots indicator -->
+  <div class="landing-dots" id="landing-dots"></div>
+
+</div>
+
+<!-- LinkedIn quick-add floating button (visible on tracker page) -->
+<button id="li-quick-btn" onclick="openLiModal()">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M19 3A2 2 0 0121 5V19A2 2 0 0119 21H5A2 2 0 013 19V5A2 2 0 015 3H19M18.5 18.5V13.2A3.26 3.26 0 0015.24 9.94C14.39 9.94 13.4 10.46 12.92 11.24V10.13H10.13V18.5H12.92V13.57C12.92 12.8 13.54 12.17 14.31 12.17A1.4 1.4 0 0115.71 13.57V18.5H18.5M6.88 8.56A1.68 1.68 0 008.56 6.88C8.56 5.95 7.81 5.19 6.88 5.19A1.69 1.69 0 005.19 6.88C5.19 7.81 5.95 8.56 6.88 8.56M8.27 18.5V10.13H5.5V18.5H8.27Z"/></svg>
+  Add from LinkedIn
+</button>
+
+<!-- LinkedIn Quick-Add Modal -->
+<div class="modal-overlay" id="li-modal">
+  <div class="modal">
+    <button class="btn-x" onclick="closeLiModal()">×</button>
+    <h2>Add from LinkedIn 🔗</h2>
+    <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:20px;line-height:1.6">Paste a LinkedIn job URL and Claude will extract the company, role, and location automatically.</p>
+
+    <div style="margin-bottom:6px">
+      <label style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)">LinkedIn Job URL</label>
+    </div>
+    <div class="li-url-row">
+      <input type="text" id="li-url-input" placeholder="https://www.linkedin.com/jobs/view/..."/>
+      <button onclick="addFromLinkedInURL()">Extract →</button>
+    </div>
+
+    <div class="li-or">or</div>
+
+    <div style="margin-bottom:6px">
+      <label style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)">Paste job description text</label>
+    </div>
+    <div class="paste-row" style="border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden">
+      <textarea id="li-text-input" placeholder="Copy and paste the full job description from LinkedIn here..." style="min-height:90px;border:none;outline:none;padding:12px 16px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;width:100%;background:var(--canvas);resize:none;line-height:1.6"></textarea>
+    </div>
+
+    <div style="margin-top:6px;margin-bottom:20px">
+      <div class="progress-wrap" id="li-progress-wrap"><div class="progress-bar" id="li-progress-bar"></div></div>
+      <div class="error-banner" id="li-error" style="margin-top:8px"></div>
+    </div>
+
+    <div style="background:var(--canvas);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:20px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Or use the bookmarklet</div>
+      <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--ink-light);line-height:1.6;margin-bottom:10px">Drag this to your bookmarks bar, then click it on any LinkedIn job page:</p>
+      <a id="li-bookmarklet-href" href="#" onclick="return false;" style="display:inline-block;background:var(--ink);color:#fff;padding:9px 18px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-decoration:none;border-radius:100px;cursor:grab;box-shadow:var(--shadow-sm)">🔗 Add to Trackly</a>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeLiModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitLiModal()">Add to Tracker →</button>
+    </div>
+  </div>
+</div>
 <header>
   <div class="logo">
     <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
@@ -544,11 +751,24 @@ footer {
 
 <!-- ── GREETING ── -->
   <div id="greeting-bar" style="margin-bottom:24px;animation:greetIn 0.7s cubic-bezier(.34,1.56,.64,1) both">
-    <div id="greeting-text" style="font-family:'Lora',Georgia,serif;font-size:28px;font-weight:600;font-style:italic;color:var(--ink);letter-spacing:-0.01em;line-height:1.3"></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div id="greeting-text" style="font-family:'Lora',Georgia,serif;font-size:28px;font-weight:600;font-style:italic;color:var(--ink);letter-spacing:-0.01em;line-height:1.3"></div>
+      <svg id="greeting-sparkle" width="22" height="22" viewBox="0 0 22 22" fill="none" style="flex-shrink:0;animation:sparkleAnim 2.5s ease-in-out infinite">
+        <!-- 4-point star sparkle -->
+        <path d="M11 1 C11 1 12.2 7.8 14.2 9.8 C16.2 11.8 21 11 21 11 C21 11 16.2 12.2 14.2 14.2 C12.2 16.2 11 21 11 21 C11 21 9.8 16.2 7.8 14.2 C5.8 12.2 1 11 1 11 C1 11 5.8 9.8 7.8 7.8 C9.8 5.8 11 1 11 1 Z" fill="#4ECDC4"/>
+      </svg>
+    </div>
     <div id="greeting-sub" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:4px"></div>
   </div>
   <style>
     @keyframes greetIn { from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)} }
+    @keyframes sparkleAnim {
+      0%   { transform: scale(1)    rotate(0deg);   opacity: 1; }
+      25%  { transform: scale(1.4)  rotate(20deg);  opacity: 1; }
+      50%  { transform: scale(0.75) rotate(0deg);   opacity: 0.5; }
+      75%  { transform: scale(1.3)  rotate(-15deg); opacity: 1; }
+      100% { transform: scale(1)    rotate(0deg);   opacity: 1; }
+    }
   </style>
 
   <!-- GMAIL BANNER -->
@@ -1228,44 +1448,293 @@ function exportCSV() {
 });
 
 // ═══════════════════════════════════════════════════════════════
-// GREETING
+// NAME PROMPT + GREETING
 // ═══════════════════════════════════════════════════════════════
-function renderGreeting() {
-  const name = 'Edvina';
-  const hour = new Date().getHours();
-  const lastVisit = localStorage.getItem('trackly_last_visit');
-  const today = new Date().toDateString();
-  const isReturning = lastVisit && lastVisit !== today;
-  localStorage.setItem('trackly_last_visit', today);
+function getUserName() {
+  return localStorage.getItem('trackly_user_name') || null;
+}
 
-  let greeting, sub;
-  if (!lastVisit) {
-    greeting = `Welcome to Trackly, ${name} ✦`;
-    sub = 'Your job search command center is ready';
-  } else if (isReturning) {
-    greeting = `Welcome back, ${name}.`;
-    sub = 'Let\'s see where things stand today';
-  } else if (hour < 12) {
-    greeting = `Good morning, ${name}.`;
-    sub = 'Ready to track some applications?';
-  } else if (hour < 17) {
-    greeting = `Good afternoon, ${name}.`;
-    sub = apps.length ? `You have ${apps.length} application${apps.length===1?'':'s'} in progress` : 'Add your first application below';
-  } else {
-    greeting = `Good evening, ${name}.`;
-    sub = apps.length ? `${apps.filter(a=>a.decision==='Pending').length} application${apps.filter(a=>a.decision==='Pending').length===1?'':'s'} still pending` : 'Start tracking your job search';
+function promptForName(callback) {
+  // Create inline name modal
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `position:fixed;inset:0;background:rgba(26,26,46,0.5);z-index:600;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);animation:modalBgIn 0.2s ease both`;
+  overlay.innerHTML = `
+    <div style="background:#fff;border:1.5px solid #E5E2DA;border-radius:16px;padding:40px 36px;width:400px;max-width:92vw;text-align:center;box-shadow:0 8px 40px rgba(26,26,46,0.16);animation:modalIn 0.3s cubic-bezier(.34,1.56,.64,1) both">
+      <svg width="44" height="44" viewBox="0 0 40 40" fill="none" style="margin:0 auto 16px;display:block">
+        <ellipse cx="20" cy="7" rx="4" ry="8" fill="#F5D0C5"/>
+        <ellipse cx="20" cy="7" rx="4" ry="8" fill="#FADADD" transform="rotate(45 20 20)"/>
+        <ellipse cx="20" cy="7" rx="4" ry="8" fill="#F5D0C5" transform="rotate(90 20 20)"/>
+        <ellipse cx="20" cy="7" rx="4" ry="8" fill="#FADADD" transform="rotate(135 20 20)"/>
+        <ellipse cx="20" cy="7" rx="4" ry="8" fill="#F5D0C5" transform="rotate(180 20 20)"/>
+        <ellipse cx="20" cy="7" rx="4" ry="8" fill="#FADADD" transform="rotate(225 20 20)"/>
+        <ellipse cx="20" cy="7" rx="4" ry="8" fill="#F5D0C5" transform="rotate(270 20 20)"/>
+        <ellipse cx="20" cy="7" rx="4" ry="8" fill="#FADADD" transform="rotate(315 20 20)"/>
+        <circle cx="20" cy="20" r="7.5" fill="#FFAB91"/>
+        <circle cx="20" cy="20" r="5" fill="#FF7043"/>
+        <circle cx="18.5" cy="18.5" r="1.4" fill="white" opacity="0.5"/>
+        <rect x="31.4" y="5" width="2" height="10" rx="1" fill="#4ECDC4"/>
+        <rect x="27" y="9.4" width="10" height="2" rx="1" fill="#4ECDC4"/>
+      </svg>
+      <div style="font-family:'Lora',Georgia,serif;font-size:22px;font-weight:700;color:#1A1A2E;margin-bottom:6px;letter-spacing:-0.02em">What should I call you?</div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:#9B97A8;letter-spacing:0.06em;margin-bottom:24px">I'll use this to greet you every time you visit.</div>
+      <input id="name-input" type="text" placeholder="Your first name" maxlength="30"
+        style="width:100%;border:1.5px solid #E5E2DA;border-radius:100px;padding:12px 20px;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;text-align:center;outline:none;background:#F7F5F0;color:#1A1A2E;transition:border-color 0.2s,box-shadow 0.2s;margin-bottom:16px"
+        onfocus="this.style.borderColor='#1A1A2E';this.style.boxShadow='0 0 0 3px rgba(26,26,46,0.08)'"
+        onblur="this.style.borderColor='#E5E2DA';this.style.boxShadow='none'"
+        onkeydown="if(event.key==='Enter')document.getElementById('name-submit-btn').click()"/>
+      <button id="name-submit-btn"
+        style="width:100%;background:#1A1A2E;color:#fff;border:none;border-radius:100px;padding:13px 24px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;cursor:pointer;transition:all 0.15s;box-shadow:0 2px 12px rgba(26,26,46,0.2)"
+        onmouseover="this.style.background='#2d2d4e';this.style.transform='translateY(-1px)'"
+        onmouseout="this.style.background='#1A1A2E';this.style.transform=''"
+        onclick="submitName()">Let's go →</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById('name-input').focus(), 100);
+
+  window._nameCallback = callback;
+  window._nameOverlay  = overlay;
+}
+
+function submitName() {
+  const val = document.getElementById('name-input').value.trim();
+  if (!val) {
+    document.getElementById('name-input').style.borderColor = '#FF6B6B';
+    document.getElementById('name-input').placeholder = 'Please enter your name';
+    return;
   }
+  localStorage.setItem('trackly_user_name', val);
+  window._nameOverlay.style.opacity = '0';
+  window._nameOverlay.style.transition = 'opacity 0.3s';
+  setTimeout(() => { window._nameOverlay.remove(); window._nameCallback(val); }, 300);
+}
+
+function renderGreeting(name) {
+  const hour = new Date().getHours();
+
+  // Morning greetings (before 12)
+  const morningGreetings = [
+    `Rise and shine, ${name}.`,
+    `Good morning, ${name}.`,
+    `Morning, ${name} — let's make moves.`,
+    `Up and at 'em, ${name}.`,
+    `A fresh start, ${name}.`,
+  ];
+  // Afternoon greetings (12–17)
+  const afternoonGreetings = [
+    `Good afternoon, ${name}.`,
+    `Hey ${name}, keep the momentum going.`,
+    `Welcome back, ${name}.`,
+    `Hello, ${name}. Mid-day grind.`,
+    `Hey ${name} — how's the search going?`,
+  ];
+  // Evening greetings (after 17)
+  const eveningGreetings = [
+    `Good evening, ${name}.`,
+    `Evening, ${name} — one more application?`,
+    `Hey ${name}, winding down?`,
+    `Hello ${name}, the grind doesn't stop.`,
+    `Evening hustle, ${name}.`,
+  ];
+
+  let pool;
+  if (hour < 12)      pool = morningGreetings;
+  else if (hour < 17) pool = afternoonGreetings;
+  else                pool = eveningGreetings;
+
+  // Pick a random one, different from last used
+  const lastIdx = parseInt(localStorage.getItem('trackly_last_greeting_idx') || '-1');
+  let idx;
+  do { idx = Math.floor(Math.random() * pool.length); } while (idx === lastIdx && pool.length > 1);
+  localStorage.setItem('trackly_last_greeting_idx', idx);
+
+  const greeting = pool[idx];
+  const pending  = apps.filter(a => a.decision === 'Pending').length;
+  const sub = apps.length
+    ? `${apps.length} application${apps.length===1?'':'s'} tracked · ${pending} pending`
+    : 'Ready to start tracking?';
 
   document.getElementById('greeting-text').textContent = greeting;
   document.getElementById('greeting-sub').textContent  = sub;
 }
+
+
+// ═══════════════════════════════════════════════════════════════
+// LANDING PAGE
+// ═══════════════════════════════════════════════════════════════
+const PHRASES = [
+  "Let's get this job.",
+  "Let's start applying.",
+  "Your next offer starts here.",
+  "The job won't apply for itself.",
+  "Apply like nobody's watching.",
+  "You're one application away.",
+  "Every 'no' gets you closer to yes.",
+  "More applications, more chances. Let's go.",
+  "Rejection builds character. Let's collect some.",
+  "Consistency wins. You've got this.",
+  "Today's application is tomorrow's interview.",
+];
+
+let currentPhrase = 0;
+
+function initLanding() {
+  // Pick a random phrase each visit
+  currentPhrase = Math.floor(Math.random() * PHRASES.length);
+  document.getElementById('landing-phrase').textContent = PHRASES[currentPhrase];
+
+  // Build dots
+  const dotsEl = document.getElementById('landing-dots');
+  dotsEl.innerHTML = PHRASES.map((_, i) =>
+    `<div class="landing-dot${i === currentPhrase ? ' active' : ''}" onclick="setPhrase(${i})"></div>`
+  ).join('');
+
+  // Build bookmarklet
+  const tracklyUrl = window.location.href.split('#')[0];
+  const code = `javascript:(function(){var co=document.querySelector('.job-details-jobs-unified-top-card__company-name a,.jobs-unified-top-card__company-name a,h4.ember-view a');var ro=document.querySelector('.job-details-jobs-unified-top-card__job-title h1,.jobs-unified-top-card__job-title h1,h1.t-24');var lo=document.querySelector('.job-details-jobs-unified-top-card__bullet,.jobs-unified-top-card__bullet');var data={source:'trackly-bookmarklet',company:co?co.innerText.trim():'Unknown',role:ro?ro.innerText.trim():'Unknown',city:lo?lo.innerText.trim():'Unknown',date:new Date().toISOString().split('T')[0],url:window.location.href};var w=window.open('${tracklyUrl}','trackly');setTimeout(function(){w.postMessage(data,'*');},1500);alert('Sent to Trackly \u2714 '+data.company+' \u2014 '+data.role);})();`;
+  const bm = document.getElementById('li-bookmarklet-href');
+  if (bm) bm.href = code;
+
+  // Check if user has visited before — if so skip landing
+  const hasVisited = localStorage.getItem('trackly_visited');
+  if (hasVisited) {
+    document.getElementById('landing').classList.add('hidden');
+    document.getElementById('li-quick-btn').style.display = 'flex';
+  }
+}
+
+function setPhrase(i) {
+  currentPhrase = i;
+  const el = document.getElementById('landing-phrase');
+  el.style.opacity = '0';
+  el.style.transform = 'translateY(8px)';
+  setTimeout(() => {
+    el.textContent = PHRASES[i];
+    el.style.transition = 'opacity 0.3s, transform 0.3s';
+    el.style.opacity = '1';
+    el.style.transform = 'translateY(0)';
+  }, 200);
+  document.querySelectorAll('.landing-dot').forEach((d, idx) => {
+    d.classList.toggle('active', idx === i);
+  });
+}
+
+function enterApp() {
+  localStorage.setItem('trackly_visited', '1');
+  const landing = document.getElementById('landing');
+  landing.classList.add('hidden');
+  setTimeout(() => {
+    landing.style.display = 'none';
+    document.getElementById('li-quick-btn').style.display = 'flex';
+  }, 650);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LINKEDIN QUICK-ADD MODAL
+// ═══════════════════════════════════════════════════════════════
+function openLiModal() {
+  document.getElementById('li-modal').classList.add('open');
+  document.getElementById('li-url-input').value = '';
+  document.getElementById('li-text-input').value = '';
+  document.getElementById('li-error').style.display = 'none';
+}
+function closeLiModal() { document.getElementById('li-modal').classList.remove('open'); }
+
+async function addFromLinkedInURL() {
+  const url = document.getElementById('li-url-input').value.trim();
+  if (!url || !url.includes('linkedin.com')) {
+    showLiError('Please paste a valid LinkedIn job URL.'); return;
+  }
+  // We can't fetch LinkedIn directly due to CORS — treat URL as context for Claude
+  const jobId = url.match(/\/(\d+)\/?/)?.[1] || '';
+  document.getElementById('li-text-input').value =
+    `LinkedIn Job URL: ${url}\nJob ID: ${jobId}\nPlease extract what you can from this LinkedIn URL.`;
+}
+
+async function submitLiModal() {
+  const url   = document.getElementById('li-url-input').value.trim();
+  const text  = document.getElementById('li-text-input').value.trim();
+  const input = text || (url ? `LinkedIn Job URL: ${url}` : '');
+  if (!input) { showLiError('Please paste a job URL or description.'); return; }
+
+  setLiLoading(true);
+  const apiKey = getApiKey() || prompt('Enter your Anthropic API Key:');
+  if (!apiKey) { setLiLoading(false); return; }
+  localStorage.setItem('trackly_api_key', apiKey);
+
+  const prompt = `Extract job application fields from this LinkedIn job posting. Return ONLY a JSON object, no markdown.
+Fields: company(str), role(str), date(YYYY-MM-DD, use today ${new Date().toISOString().split('T')[0]}), city(str or "Remote"), referral("Yes"/"No"), response("Pending"), round1(false), round2(false), round3(false), decision("Pending")
+Text: """${input}"""`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:32000, messages:[{role:'user',content:prompt}] })
+    });
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    const d   = await res.json();
+    const raw = d.content.find(b=>b.type==='text')?.text||'';
+    const jm  = raw.match(/\{[\s\S]*\}/);
+    if (!jm) throw new Error('Could not parse response.');
+    const p = JSON.parse(jm[0]);
+    apps.unshift({
+      id: Date.now(), company: p.company||'Unknown', role: p.role||'Unknown',
+      date: p.date||new Date().toISOString().split('T')[0], city: p.city||'Unknown',
+      referral:'No', response:'Pending', round1:false, round2:false, round3:false,
+      decision:'Pending', linkedinUrl: url||''
+    });
+    save();
+    closeLiModal();
+    showToast('🔗 LinkedIn', p.company||'Unknown', `${p.role} added to Trackly!`);
+  } catch(e) { showLiError('Error: ' + e.message); }
+  finally { setLiLoading(false); }
+}
+
+function setLiLoading(on) {
+  const pw = document.getElementById('li-progress-wrap');
+  const pb = document.getElementById('li-progress-bar');
+  const btn = document.querySelector('#li-modal .btn-primary');
+  if (on) {
+    pw.classList.add('visible'); pb.style.width='0%';
+    let w=0; pw._iv=setInterval(()=>{w=Math.min(w+Math.random()*15,88);pb.style.width=w+'%';},300);
+    if(btn){btn.textContent='Extracting...';btn.disabled=true;}
+  } else {
+    clearInterval(pw._iv); pb.style.width='100%';
+    setTimeout(()=>{pw.classList.remove('visible');pb.style.width='0%';},400);
+    if(btn){btn.textContent='Add to Tracker →';btn.disabled=false;}
+  }
+}
+
+function showLiError(msg) {
+  const e = document.getElementById('li-error');
+  e.textContent = msg; e.style.display = 'block';
+}
+
+document.getElementById('li-modal').addEventListener('click', e=>{if(e.target===e.currentTarget)closeLiModal();});
 
 // ═══════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════
 handleOAuthCallback();
 if(gmailToken){const exp=parseInt(localStorage.getItem('trackly_gmail_token_expiry')||'0');if(Date.now()<exp)onGmailConnected();else{localStorage.removeItem('trackly_gmail_token');gmailToken=null;}}
-render(); updateStats(); renderGreeting();
+render(); updateStats();
+
+// Name + greeting flow
+const _savedName = getUserName();
+if (_savedName) {
+  renderGreeting(_savedName);
+} else {
+  // No name yet — show prompt after a brief delay so landing page renders first
+  document.getElementById('greeting-text').textContent = '';
+  document.getElementById('greeting-sub').textContent  = '';
+  setTimeout(() => {
+    promptForName((name) => {
+      renderGreeting(name);
+    });
+  }, 400);
+}
+
+initLanding();
 document.getElementById('job-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.metaKey||e.ctrlKey))addJob();});
 </script>
 </body>
