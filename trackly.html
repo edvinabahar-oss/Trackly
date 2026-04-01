@@ -669,14 +669,18 @@ footer {
   <div class="modal">
     <button class="btn-x" onclick="closeLiModal()">×</button>
     <h2>Add from LinkedIn 🔗</h2>
-    <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:20px;line-height:1.6">Paste a LinkedIn job URL and Claude will extract the company, role, and location automatically.</p>
+    <p style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:20px;line-height:1.7">
+      <strong style="color:var(--ink)">Step 1</strong> — Paste the LinkedIn job URL below and click Extract. We'll open the page for you.<br/>
+      <strong style="color:var(--ink)">Step 2</strong> — Copy the job description from that page and paste it in the box below.<br/>
+      <strong style="color:var(--ink)">Step 3</strong> — Hit "Add to Tracker →" and Claude does the rest.
+    </p>
 
     <div style="margin-bottom:6px">
       <label style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted)">LinkedIn Job URL</label>
     </div>
     <div class="li-url-row">
       <input type="text" id="li-url-input" placeholder="https://www.linkedin.com/jobs/view/..."/>
-      <button onclick="addFromLinkedInURL()">Extract →</button>
+      <button onclick="addFromLinkedInURL()">Open Job →</button>
     </div>
 
     <div class="li-or">or</div>
@@ -1765,10 +1769,18 @@ async function addFromLinkedInURL() {
   if (!url || !url.includes('linkedin.com')) {
     showLiError('Please paste a valid LinkedIn job URL.'); return;
   }
-  // We can't fetch LinkedIn directly due to CORS — treat URL as context for Claude
-  const jobId = url.match(/\/(\d+)\/?/)?.[1] || '';
-  document.getElementById('li-text-input').value =
-    `LinkedIn Job URL: ${url}\nJob ID: ${jobId}\nPlease extract what you can from this LinkedIn URL.`;
+  // Can't fetch LinkedIn directly (CORS) — guide user to paste the description
+  document.getElementById('li-text-input').value = '';
+  document.getElementById('li-text-input').placeholder = 'Now paste the job description text from that LinkedIn page here...';
+  document.getElementById('li-text-input').focus();
+  document.getElementById('li-error').style.display = 'none';
+
+  // Open the LinkedIn job in a new tab so they can easily copy the description
+  showLiError('💡 LinkedIn blocks direct access, so paste the job description below. Opening the job page for you now...');
+  document.getElementById('li-error').style.background = '#E5FAFB';
+  document.getElementById('li-error').style.borderColor = '#4ECDC4';
+  document.getElementById('li-error').style.color = '#0F6E56';
+  setTimeout(() => { window.open(url, '_blank'); }, 600);
 }
 
 async function submitLiModal() {
