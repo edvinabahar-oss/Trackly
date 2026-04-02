@@ -599,6 +599,53 @@ footer {
 
 @keyframes modalBgIn { from{opacity:0} to{opacity:1} }
 
+/* ── INTERVIEW NOTES ── */
+.btn-notes {
+  background: none; border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); cursor: pointer;
+  color: var(--muted); font-size: 12px;
+  padding: 3px 8px; transition: all 0.15s;
+  font-family: 'DM Mono', monospace;
+  white-space: nowrap; display: inline-flex;
+  align-items: center; gap: 4px;
+}
+.btn-notes:hover { background: #FFF8E5; border-color: #FFAB91; color: var(--ink); }
+.btn-notes.has-notes { background: #FFF8E5; border-color: #FFAB91; color: #FF7043; }
+
+.notes-modal .modal { width: 620px; }
+.notes-section { margin-bottom: 20px; }
+.notes-section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 700;
+  color: var(--ink); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 7px;
+}
+.notes-section-title .round-badge {
+  background: var(--ink); color: #fff;
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; padding: 2px 8px;
+  border-radius: 100px; letter-spacing: 0.08em;
+}
+.notes-textarea {
+  width: 100%; border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 14px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px; color: var(--ink);
+  background: var(--canvas); resize: vertical;
+  min-height: 90px; outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  line-height: 1.6;
+}
+.notes-textarea:focus {
+  border-color: var(--ink); background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(26,26,46,0.07);
+}
+.notes-textarea::placeholder { color: #C5C1D0; }
+.notes-divider {
+  border: none; border-top: 1px dashed var(--border);
+  margin: 20px 0;
+}
+
 @media(max-width:900px) {
   header { padding: 12px 20px; height: auto; flex-wrap: wrap; gap: 10px; }
   main { padding: 20px 16px 60px; }
@@ -916,6 +963,71 @@ footer {
   </div>
 </footer>
 
+<!-- INTERVIEW NOTES MODAL -->
+<div class="modal-overlay notes-modal" id="notes-modal">
+  <div class="modal">
+    <button class="btn-x" onclick="closeNotesModal()">×</button>
+    <h2 id="notes-modal-title">Interview Notes</h2>
+    <p id="notes-modal-sub" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:24px;letter-spacing:0.04em"></p>
+
+    <!-- Round 1 -->
+    <div class="notes-section" id="notes-r1-section">
+      <div class="notes-section-title">
+        <span class="round-badge">Round 1</span>
+        Interview Questions
+      </div>
+      <textarea class="notes-textarea" id="notes-r1-questions" placeholder="What questions were you asked? e.g. Tell me about yourself. Walk me through your resume. Why this role?"></textarea>
+      <div style="margin-top:10px">
+        <div class="notes-section-title" style="font-size:12px;margin-bottom:6px">Feedback & Comments</div>
+        <textarea class="notes-textarea" id="notes-r1-feedback" placeholder="How did it go? What would you do differently? Any gut feelings about the role or team?" style="min-height:70px"></textarea>
+      </div>
+    </div>
+
+    <hr class="notes-divider" id="notes-divider-r2" style="display:none"/>
+
+    <!-- Round 2 -->
+    <div class="notes-section" id="notes-r2-section" style="display:none">
+      <div class="notes-section-title">
+        <span class="round-badge">Round 2</span>
+        Interview Questions
+      </div>
+      <textarea class="notes-textarea" id="notes-r2-questions" placeholder="Questions from round 2..."></textarea>
+      <div style="margin-top:10px">
+        <div class="notes-section-title" style="font-size:12px;margin-bottom:6px">Feedback & Comments</div>
+        <textarea class="notes-textarea" id="notes-r2-feedback" placeholder="How did round 2 go?" style="min-height:70px"></textarea>
+      </div>
+    </div>
+
+    <hr class="notes-divider" id="notes-divider-r3" style="display:none"/>
+
+    <!-- Round 3 -->
+    <div class="notes-section" id="notes-r3-section" style="display:none">
+      <div class="notes-section-title">
+        <span class="round-badge">Round 3</span>
+        Interview Questions
+      </div>
+      <textarea class="notes-textarea" id="notes-r3-questions" placeholder="Questions from round 3..."></textarea>
+      <div style="margin-top:10px">
+        <div class="notes-section-title" style="font-size:12px;margin-bottom:6px">Feedback & Comments</div>
+        <textarea class="notes-textarea" id="notes-r3-feedback" placeholder="How did round 3 go?" style="min-height:70px"></textarea>
+      </div>
+    </div>
+
+    <hr class="notes-divider"/>
+
+    <!-- General notes -->
+    <div class="notes-section">
+      <div class="notes-section-title">General Notes & Impressions</div>
+      <textarea class="notes-textarea" id="notes-general" placeholder="Overall thoughts on the company, culture, role fit, salary expectations, anything else worth remembering..." style="min-height:80px"></textarea>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeNotesModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveNotes()">Save Notes ✦</button>
+    </div>
+  </div>
+</div>
+
 <!-- EDIT MODAL -->
 <div class="modal-overlay" id="edit-modal">
   <div class="modal">
@@ -1072,6 +1184,15 @@ function render() {
       a.round2 ? '<span class="pill p-r2">R2</span>' : '',
       a.round3 ? '<span class="pill p-r3">R3</span>' : '',
     ].filter(Boolean).join('') || '<span style="color:#ccc;font-size:11px;font-family:DM Mono,monospace">—</span>';
+
+    const hasInterview = a.round1 || a.round2 || a.round3;
+    const hasNotes = a.notes_r1_q || a.notes_r1_fb || a.notes_r2_q || a.notes_r2_fb || a.notes_r3_q || a.notes_r3_fb || a.notes_general;
+    const notesBtn = hasInterview
+      ? `<button class="btn-notes ${hasNotes ? 'has-notes' : ''}" title="${hasNotes ? 'View/edit interview notes' : 'Add interview notes'}" onclick="openNotesModal(${a.id})">
+          📝 ${hasNotes ? 'Notes' : 'Add Notes'}
+        </button>`
+      : '';
+
     return `<tr id="row-${a.id}">
       <td class="col-num">${i+1}</td>
       <td class="col-date">${a.date||'—'}</td>
@@ -1080,7 +1201,7 @@ function render() {
       <td>${pill(a.referral,'yn')}</td>
       <td class="col-city">${esc(a.city||'—')}</td>
       <td>${pill(a.response,'res')}</td>
-      <td><div class="icell">${iv}</div></td>
+      <td><div class="icell">${iv}${notesBtn ? '<span style="margin-left:6px">'+notesBtn+'</span>' : ''}</div></td>
       <td>${pill(a.decision,'dec')}</td>
       <td style="white-space:nowrap">
         <button class="btn-row-action" title="Edit" onclick="openEdit(${a.id})">✎</button>
@@ -1488,6 +1609,64 @@ function delApp(id){apps=apps.filter(a=>a.id!==id);save();}
 function clearAll(){if(!apps.length)return;if(confirm('Clear all applications? This cannot be undone.')){{apps=[];save();}}}
 
 // ═══════════════════════════════════════════════════════════════
+// INTERVIEW NOTES
+// ═══════════════════════════════════════════════════════════════
+let notesAppId = null;
+
+function openNotesModal(id) {
+  const a = apps.find(x => x.id === id);
+  if (!a) return;
+  notesAppId = id;
+
+  document.getElementById('notes-modal-title').textContent = `Interview Notes — ${a.company}`;
+  document.getElementById('notes-modal-sub').textContent   = `${a.role}${a.city && a.city !== 'Unknown' ? ' · ' + a.city : ''}`;
+
+  // Show/hide rounds based on which ones exist
+  ['r1','r2','r3'].forEach(r => {
+    const hasRound = a[`round${r[1]}`];
+    document.getElementById(`notes-${r}-section`).style.display  = hasRound ? 'block' : 'none';
+    const div = document.getElementById(`notes-divider-${r}`);
+    if (div) div.style.display = hasRound ? 'block' : 'none';
+  });
+
+  // Pre-fill existing notes
+  document.getElementById('notes-r1-questions').value = a.notes_r1_q  || '';
+  document.getElementById('notes-r1-feedback').value  = a.notes_r1_fb || '';
+  document.getElementById('notes-r2-questions').value = a.notes_r2_q  || '';
+  document.getElementById('notes-r2-feedback').value  = a.notes_r2_fb || '';
+  document.getElementById('notes-r3-questions').value = a.notes_r3_q  || '';
+  document.getElementById('notes-r3-feedback').value  = a.notes_r3_fb || '';
+  document.getElementById('notes-general').value      = a.notes_general || '';
+
+  document.getElementById('notes-modal').classList.add('open');
+}
+
+function closeNotesModal() {
+  document.getElementById('notes-modal').classList.remove('open');
+  notesAppId = null;
+}
+
+function saveNotes() {
+  if (notesAppId === null) return;
+  const idx = apps.findIndex(a => a.id === notesAppId);
+  if (idx === -1) return;
+
+  apps[idx].notes_r1_q   = document.getElementById('notes-r1-questions').value.trim();
+  apps[idx].notes_r1_fb  = document.getElementById('notes-r1-feedback').value.trim();
+  apps[idx].notes_r2_q   = document.getElementById('notes-r2-questions').value.trim();
+  apps[idx].notes_r2_fb  = document.getElementById('notes-r2-feedback').value.trim();
+  apps[idx].notes_r3_q   = document.getElementById('notes-r3-questions').value.trim();
+  apps[idx].notes_r3_fb  = document.getElementById('notes-r3-feedback').value.trim();
+  apps[idx].notes_general = document.getElementById('notes-general').value.trim();
+
+  save();
+  closeNotesModal();
+  showToast('📝 Notes saved', apps[idx].company, 'Interview notes updated successfully.');
+}
+
+document.getElementById('notes-modal').addEventListener('click', e => { if (e.target === e.currentTarget) closeNotesModal(); });
+
+// ═══════════════════════════════════════════════════════════════
 // MODALS
 // ═══════════════════════════════════════════════════════════════
 function openEdit(id) {
@@ -1514,9 +1693,31 @@ function openAddManual() {
 function closeModal(){document.getElementById('edit-modal').classList.remove('open');editingId=null;}
 
 function saveModal() {
-  const entry={id:editingId||Date.now(),company:document.getElementById('f-company').value.trim()||'Unknown',role:document.getElementById('f-role').value.trim()||'Unknown',date:document.getElementById('f-date').value||new Date().toISOString().split('T')[0],city:document.getElementById('f-city').value.trim()||'Unknown',referral:document.getElementById('f-referral').value,response:document.getElementById('f-response').value,round1:document.getElementById('f-r1').checked,round2:document.getElementById('f-r2').checked,round3:document.getElementById('f-r3').checked,decision:document.getElementById('f-decision').value};
-  if(editingId){const idx=apps.findIndex(a=>a.id===editingId);if(idx!==-1)apps[idx]=entry;}else apps.unshift(entry);
-  save();closeModal();
+  const existing = apps.find(a => a.id === editingId) || {};
+  const entry = {
+    id:       editingId || Date.now(),
+    company:  document.getElementById('f-company').value.trim() || 'Unknown',
+    role:     document.getElementById('f-role').value.trim()    || 'Unknown',
+    date:     document.getElementById('f-date').value           || new Date().toISOString().split('T')[0],
+    city:     document.getElementById('f-city').value.trim()    || 'Unknown',
+    referral: document.getElementById('f-referral').value,
+    response: document.getElementById('f-response').value,
+    round1:   document.getElementById('f-r1').checked,
+    round2:   document.getElementById('f-r2').checked,
+    round3:   document.getElementById('f-r3').checked,
+    decision: document.getElementById('f-decision').value,
+    // Preserve existing notes
+    notes_r1_q:    existing.notes_r1_q    || '',
+    notes_r1_fb:   existing.notes_r1_fb   || '',
+    notes_r2_q:    existing.notes_r2_q    || '',
+    notes_r2_fb:   existing.notes_r2_fb   || '',
+    notes_r3_q:    existing.notes_r3_q    || '',
+    notes_r3_fb:   existing.notes_r3_fb   || '',
+    notes_general: existing.notes_general || '',
+  };
+  if (editingId) { const idx = apps.findIndex(a=>a.id===editingId); if(idx!==-1) apps[idx]=entry; }
+  else apps.unshift(entry);
+  save(); closeModal();
 }
 
 // BOOKMARKLET
