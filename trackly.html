@@ -1260,9 +1260,16 @@ function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').re
 // ═══════════════════════════════════════════════════════════════
 // TOASTS
 // ═══════════════════════════════════════════════════════════════
+// Notification is missing on iOS Safari and in some embedded views, and Safari only honours
+// requestPermission() during a user gesture, so every use goes through these guards.
+function canNotify() { return typeof window.Notification === 'function'; }
+function requestNotifyPermission() {
+  if (!canNotify() || Notification.permission!=='default') return;
+  try { const r=Notification.requestPermission(); if (r && r.catch) r.catch(()=>{}); } catch(e) {}
+}
+
 function showToast(label, title, body) {
-  if (Notification.permission==='default') Notification.requestPermission();
-  if (Notification.permission==='granted') new Notification(`Trackly — ${title}`,{body});
+  if (canNotify() && Notification.permission==='granted') { try { new Notification(`Trackly — ${title}`,{body}); } catch(e) {} }
   const wrap = document.getElementById('toast-container');
   const el = document.createElement('div');
   el.className = 'toast';
@@ -1445,7 +1452,7 @@ function cancelMapper() {
 // ═══════════════════════════════════════════════════════════════
 function openGmailSetup() {
   document.getElementById('gmail-modal').classList.add('open');
-  const cid=localStorage.getItem('trackly_gmail_client_id'); if(cid) document.getElementById('gmail-client-id').value=cid;
+  document.getElementById('gmail-client-id').value=localStorage.getItem('trackly_gmail_client_id')||DEFAULT_GMAIL_CLIENT_ID;
   const key=localStorage.getItem('trackly_api_key'); if(key) document.getElementById('api-key-input').value=key;
   const iv=localStorage.getItem('trackly_scan_interval'); if(iv) document.getElementById('gmail-interval').value=iv;
   document.getElementById('gmail-origin-hint').textContent=window.location.origin;
@@ -1453,8 +1460,12 @@ function openGmailSetup() {
 }
 function closeGmailModal() { document.getElementById('gmail-modal').classList.remove('open'); }
 
+// Registered for http://localhost:8000 and https://edvinabahar-oss.github.io/Trackly/trackly.html.
+// Not a secret: OAuth client IDs are public by design.
+const DEFAULT_GMAIL_CLIENT_ID = '89086489779-er6lib8c6dk55hfqs4g5e1936bmcbdnq.apps.googleusercontent.com';
+
 function authorizeGmail() {
-  const clientId=document.getElementById('gmail-client-id').value.trim();
+  const clientId=document.getElementById('gmail-client-id').value.trim()||DEFAULT_GMAIL_CLIENT_ID;
   const apiKey=document.getElementById('api-key-input').value.trim();
   const interval=document.getElementById('gmail-interval').value;
   if (!clientId) { alert('Please enter your Google OAuth Client ID.'); return; }
@@ -1462,20 +1473,30 @@ function authorizeGmail() {
   localStorage.setItem('trackly_gmail_client_id', clientId);
   if (apiKey) localStorage.setItem('trackly_api_key', apiKey); else localStorage.removeItem('trackly_api_key');
   localStorage.setItem('trackly_scan_interval', interval);
+  requestNotifyPermission();
+  const state=Math.random().toString(36).slice(2)+Date.now().toString(36);
+  localStorage.setItem('trackly_oauth_state', state);
+  // Full-page redirect (not a popup or Google Identity Services iframe) so Safari's popup blocker and
+  // third-party-cookie/ITP rules never apply; the token comes back in the URL fragment of this page.
   // gmail.metadata must not be requested alongside readonly: Gmail rejects search queries (q=) when it is granted.
-  const params = new URLSearchParams({ client_id:clientId, redirect_uri:window.location.origin+window.location.pathname, response_type:'token', scope:'https://www.googleapis.com/auth/gmail.readonly', prompt:'consent' });
-  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+  const params = new URLSearchParams({ client_id:clientId, redirect_uri:window.location.origin+window.location.pathname, response_type:'token', scope:'https://www.googleapis.com/auth/gmail.readonly', include_granted_scopes:'true', state });
+  window.location.assign(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
 }
 
 function handleOAuthCallback() {
-  const hash=window.location.hash.substring(1); if(!hash) return;
-  const p=new URLSearchParams(hash); const token=p.get('access_token'); if(!token) return;
-  gmailToken=token;
+  const hash=window.location.hash.substring(1); if(!hash) return false;
+  const p=new URLSearchParams(hash);
+  if(!p.get('access_token') && !p.get('error')) return false;
+  history.replaceState(null,'',window.location.pathname+window.location.search);
+  const expected=localStorage.getItem('trackly_oauth_state'); localStorage.removeItem('trackly_oauth_state');
+  if(p.get('error')) { alert(`Gmail was not connected: ${p.get('error')}.`); return false; }
+  if(!expected || p.get('state')!==expected) { alert('Gmail sign-in could not be verified. Please click Connect Gmail again.'); return false; }
+  gmailToken=p.get('access_token');
   const exp=parseInt(p.get('expires_in')||'3600');
-  localStorage.setItem('trackly_gmail_token',token);
+  localStorage.setItem('trackly_gmail_token',gmailToken);
   localStorage.setItem('trackly_gmail_token_expiry',Date.now()+exp*1000);
-  history.replaceState(null,'',window.location.pathname);
   onGmailConnected();
+  return true;
 }
 
 function onGmailConnected() {
@@ -1489,7 +1510,6 @@ function onGmailConnected() {
       <span id="stext">Gmail Connected</span>
       <button style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:0 0 0 4px" onclick="disconnectGmail()" title="Disconnect">✕</button>
     </div>`;
-  if(Notification.permission==='default') Notification.requestPermission();
   startScanning();
 }
 
@@ -1505,6 +1525,7 @@ function disconnectGmail() {
 // EMAIL SCANNING
 // ═══════════════════════════════════════════════════════════════
 function startScanning() {
+  if(scanTimer) return;
   const iv=parseInt(localStorage.getItem('trackly_scan_interval')||'600000');
   scanEmails(); scanTimer=setInterval(scanEmails,iv);
 }
@@ -1614,7 +1635,8 @@ const EMAIL_RULES = {
 };
 
 function assertiveText(text) {
-  return text.split(/(?<=[.!?])\s+|\n+/).filter(s=>!CONDITIONAL_RE.test(s)).join('\n');
+  // No regex lookbehind here: Safari before 16.4 rejects it at parse time, which would stop the whole script.
+  return text.replace(/([.!?])\s+/g,'$1\n').split(/\n+/).filter(s=>!CONDITIONAL_RE.test(s)).join('\n');
 }
 
 function classifyEmailRules(e) {
@@ -2272,8 +2294,8 @@ document.getElementById('li-modal').addEventListener('click', e=>{if(e.target===
 // ═══════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════
-handleOAuthCallback();
-if(gmailToken){const exp=parseInt(localStorage.getItem('trackly_gmail_token_expiry')||'0');if(Date.now()<exp)onGmailConnected();else{localStorage.removeItem('trackly_gmail_token');gmailToken=null;}}
+const _justConnected = handleOAuthCallback();
+if(gmailToken && !_justConnected){const exp=parseInt(localStorage.getItem('trackly_gmail_token_expiry')||'0');if(Date.now()<exp)onGmailConnected();else{localStorage.removeItem('trackly_gmail_token');gmailToken=null;}}
 render(); updateStats();
 
 // Name + greeting flow
