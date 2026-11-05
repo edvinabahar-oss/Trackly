@@ -32,6 +32,7 @@ await ctx.route('https://accounts.google.com/**', route => {
 const listCalls = [];
 await ctx.route('https://gmail.googleapis.com/**', route => {
   assert.equal(route.request().headers().authorization, 'Bearer fake-token');
+  if (new URL(route.request().url()).pathname.endsWith('/profile')) return route.fulfill({ json: { emailAddress: 'edvina@example.com' } });
   listCalls.push(Date.now());
   return route.fulfill({ json: { messages: [] } });
 });

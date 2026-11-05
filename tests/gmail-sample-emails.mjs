@@ -43,14 +43,32 @@ const EMAILS = [
   { id: 'm10', threadId: 't-umbrella', at: day('10-21'), from: 'Jamie Park <jamie@umbrella.dev>',
     subject: 'Quick question',
     text: 'Hey Edvina, loved what you sent over for our Analytics Engineer opening. Are you free Thursday to talk it through with the team?' },
+  // Newsletters and promos that mention interviews/offers, including tracked companies, must not move anything.
+  { id: 'm11', threadId: 't-muse', at: day('10-22'), from: 'The Muse <newsletter@themuse.com>', bulk: true,
+    subject: '5 interview mistakes that cost candidates the offer',
+    text: 'Before your next interview at Contoso or Google, read these tips. We would love to invite you to our free webinar on negotiating your job offer.' },
+  { id: 'm12', threadId: 't-li-promo', at: day('10-23'), from: 'LinkedIn <messages-noreply@linkedin.com>', labels: ['CATEGORY_PROMOTIONS'],
+    subject: 'Land your next job offer faster',
+    text: 'Edvina, try Premium free for 1 month. Members get 2x more interview invitations from Contoso and others.' },
+  { id: 'm13', threadId: 't-contoso-news', at: day('10-24'), from: 'Contoso Careers <careers@contoso.com>', bulk: true,
+    subject: 'Contoso interview day is coming to Berlin',
+    text: 'Join Contoso for our open interview day. Meet hiring managers across engineering.' },
+  { id: 'm14', threadId: 't-wf-alert', at: day('10-24'), from: 'Wellfound <jobs@wellfound.com>', bulk: true,
+    subject: 'Interview-ready roles at Hooli',
+    text: 'Jobs you may be interested in: Data Scientist at Hooli. Hooli is interviewing this week.' },
+  // Scheduling tools send real invites as bulk mail: they may update a tracked app but not create one.
+  { id: 'm15', threadId: 't-contoso-int', at: day('10-25'), from: 'Contoso via GoodTime <no-reply@goodtime.io>', bulk: true,
+    subject: 'Interview with Contoso',
+    text: 'Hi Edvina, we would like to invite you to an interview for the Data Engineer role at Contoso. Please select a time using the link below.' },
 ];
 
 function gmailMessage(e) {
   const headers = [{ name: 'Subject', value: e.subject }, { name: 'From', value: e.from }, { name: 'Date', value: new Date(e.at).toUTCString() }];
+  if (e.bulk) headers.push({ name: 'List-Unsubscribe', value: '<mailto:unsubscribe@example.com>' });
   const payload = e.html
     ? { mimeType: 'multipart/alternative', headers, parts: [{ mimeType: 'text/html', body: { data: b64(e.html) } }] }
     : { mimeType: 'multipart/alternative', headers, parts: [{ mimeType: 'text/plain', body: { data: b64(e.text) } }] };
-  return { id: e.id, threadId: e.threadId, internalDate: String(e.at), snippet: (e.text || '').slice(0, 100), payload };
+  return { id: e.id, threadId: e.threadId, labelIds: ['INBOX', ...(e.labels || [])], internalDate: String(e.at), snippet: (e.text || '').slice(0, 100), payload };
 }
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined });
@@ -113,11 +131,13 @@ assert.equal(by('Northwind Analytics')[0].date, '2026-10-03');
 assert.deepEqual([by('Globex Corporation')[0].role, by('Globex Corporation')[0].decision, by('Globex Corporation')[0].round1], ['Machine Learning Engineer', 'Rejected', false], 'conditional "will be invited to a phone screen" is not an interview');
 assert.deepEqual([by('Initech')[0].role, by('Initech')[0].round1], ['Product Analyst', true], 'interview with no prior confirmation creates the app');
 assert.deepEqual([by('Umbrella')[0].role, by('Umbrella')[0].round1], ['Analytics Engineer', true], 'AI fallback result applied');
-assert.equal(by('Contoso')[0].decision, 'Pending');
-assert.ok(!list.some(a => /weekly/i.test(a.company)), 'newsletter ignored');
+assert.deepEqual([by('Contoso')[0].decision, by('Contoso')[0].round1], ['Pending', true], 'bulk-sent scheduling invite updates the tracked app');
+assert.ok(!list.some(a => /weekly|muse|hooli|wellfound|linkedin/i.test(a.company)), 'newsletters, job alerts and promos ignored');
+assert.ok(!list.some(a => a.decision === 'Offer' && a.company !== 'Northwind Analytics'), 'promo "job offer" is not an offer');
 
 const aiSubjects = aiRequests.map(r => r.body.messages[0].content.match(/Subject:"([^"]*)"/)[1]);
-assert.deepEqual(aiSubjects.sort(), ['Quick question', 'Your application of the week: dbt tips'], 'AI only called for emails the rules could not classify');
+assert.deepEqual(aiSubjects.sort(), ['5 interview mistakes that cost candidates the offer', 'Contoso interview day is coming to Berlin', 'Interview-ready roles at Hooli', 'Land your next job offer faster', 'Quick question', 'Your application of the week: dbt tips'], 'AI only called for emails the rules could not classify');
+assert.ok(aiRequests.find(r => r.body.messages[0].content.includes('Interview-ready')).body.messages[0].content.includes('mass mail'), 'AI is told when an email is mass mail');
 assert.equal(aiRequests[0].headers['x-api-key'], 'sk-ant-test');
 assert.equal(aiRequests[0].headers['anthropic-dangerous-direct-browser-access'], 'true');
 
@@ -126,7 +146,7 @@ assert.ok(gmailCalls.some(c => c.includes('format=full')));
 
 const stats = await page.$$eval('#stats-bar > div', ds => ds.map(d => d.innerText.replace(/\s+/g, ' ')));
 console.log(stats);
-assert.match(stats[1], /Interview Rate 50% 3 of 6 applications got an interview/i);
+assert.match(stats[1], /Interview Rate 67% 4 of 6 applications got an interview/i);
 assert.match(stats[2], /Offer Rate 17% 1 of 6 applications got an offer/i);
 
 // Rescan, including after forgetting which emails were processed: content-based dedup must still hold.
@@ -134,7 +154,7 @@ await page.evaluate(() => scanEmails()); await waitIdle();
 await page.evaluate(() => { localStorage.removeItem('trackly_done_emails'); localStorage.removeItem('trackly_last_scan_date'); return scanEmails(); }); await waitIdle();
 assert.equal((await apps()).length, 6, 'rescans do not create duplicates');
 
-const scope = await page.evaluate(() => authorizeGmail.toString().match(/scope:'([^']+)'/)[1]);
+const scope = await page.evaluate(() => new globalThis.URL(gmailAuthUrl('cid', 'none')).searchParams.get('scope'));
 assert.equal(scope, 'https://www.googleapis.com/auth/gmail.readonly', 'only the read-only scope is requested');
 assert.deepEqual(errors, []);
 
