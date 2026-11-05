@@ -175,6 +175,8 @@ header {
 .log-tag.interview  { background: #E5FAFB; color: #2BA8A0; }
 .log-tag.offer      { background: #E5F4FF; color: var(--accent3); }
 .log-tag.info       { background: var(--canvas); color: var(--muted); }
+.log-tag.applied    { background: #FFF4E0; color: #C77D00; }
+.pill.p-gmail { background: #F1F0FF; color: #5B4FC7; margin-left: 6px; font-size: 9px; }
 .log-msg { flex: 1; line-height: 1.4; }
 
 /* ── GMAIL BANNER ── */
@@ -828,7 +830,7 @@ footer {
       <div class="banner-icon">✉️</div>
       <div>
         <h3>Connect Gmail for auto-updates</h3>
-        <p>Trackly scans your inbox for rejections, interview invites & offers — and updates the table automatically.</p>
+        <p>Trackly scans your inbox for application confirmations, rejections, interview invites & offers — and updates the table automatically.</p>
       </div>
     </div>
     <button class="btn-gmail" onclick="openGmailSetup()" style="flex-shrink:0;position:relative;z-index:1">
@@ -1064,15 +1066,15 @@ footer {
     <h2>Connect Gmail ✉️</h2>
     <div class="setup-steps">
       <div class="setup-step"><div class="snum">1</div><div class="sbody"><strong>Create a Google Cloud Project</strong><p>Go to <a href="https://console.cloud.google.com" target="_blank" style="color:var(--ink)">console.cloud.google.com</a>, create a project, enable the <strong>Gmail API</strong>.</p></div></div>
-      <div class="setup-step"><div class="snum">2</div><div class="sbody"><strong>Create OAuth 2.0 Credentials</strong><p>Credentials → OAuth Client ID (Web Application). Add this page URL as authorized origin and redirect URI.</p></div></div>
-      <div class="setup-step"><div class="snum">3</div><div class="sbody"><strong>Required Scopes</strong><div class="scope-list"><div class="scope-item">https://www.googleapis.com/auth/gmail.readonly</div><div class="scope-item">https://www.googleapis.com/auth/gmail.metadata</div></div></div></div>
+      <div class="setup-step"><div class="snum">2</div><div class="sbody"><strong>Create OAuth 2.0 Credentials</strong><p>Credentials → OAuth Client ID (Web Application). Add these exactly:</p><div class="scope-list"><div class="scope-item">Authorized JavaScript origin: <span id="gmail-origin-hint"></span></div><div class="scope-item">Authorized redirect URI: <span id="gmail-redirect-hint"></span></div></div></div></div>
+      <div class="setup-step"><div class="snum">3</div><div class="sbody"><strong>Required Scope (read-only)</strong><div class="scope-list"><div class="scope-item">https://www.googleapis.com/auth/gmail.readonly</div></div></div></div>
     </div>
     <div class="form-grid">
       <div class="form-field" style="grid-column:span 2"><label>Google OAuth Client ID</label><input type="text" id="gmail-client-id" placeholder="xxxxxxxx.apps.googleusercontent.com"/></div>
-      <div class="form-field" style="grid-column:span 2"><label>Anthropic API Key</label><input type="password" id="api-key-input" placeholder="sk-ant-..."/></div>
+      <div class="form-field" style="grid-column:span 2"><label>Anthropic API Key (optional — AI fallback for emails the rules can't classify)</label><input type="password" id="api-key-input" placeholder="sk-ant-..."/></div>
       <div class="form-field" style="grid-column:span 2"><label>Scan Frequency</label><select id="gmail-interval"><option value="300000">Every 5 minutes</option><option value="600000" selected>Every 10 minutes</option><option value="1800000">Every 30 minutes</option><option value="3600000">Every hour</option></select></div>
     </div>
-    <div class="privacy-note">🔒 Trackly reads only email subjects and metadata. Your keys stay in localStorage — never sent to any server.</div>
+    <div class="privacy-note">🔒 Read-only Gmail access: Trackly can't send, delete or modify email. Job-related emails are classified in your browser; only if rules can't classify one and you've set an Anthropic key is that email's text sent to Anthropic. Your keys and data stay in localStorage.</div>
     <div class="modal-footer">
       <button class="btn-secondary" onclick="closeGmailModal()">Cancel</button>
       <button class="btn-primary" onclick="authorizeGmail()">Authorize with Google →</button>
@@ -1196,7 +1198,7 @@ function render() {
     return `<tr id="row-${a.id}">
       <td class="col-num">${i+1}</td>
       <td class="col-date">${a.date||'—'}</td>
-      <td class="col-co">${esc(a.company||'—')}</td>
+      <td class="col-co">${esc(a.company||'—')}${a.source==='gmail'?'<span class="pill p-gmail" title="Added from a Gmail confirmation email">✉ Gmail</span>':''}</td>
       <td class="col-role">${esc(a.role||'—')}</td>
       <td>${pill(a.referral,'yn')}</td>
       <td class="col-city">${esc(a.city||'—')}</td>
@@ -1226,8 +1228,8 @@ function updateStats() {
   const rejected    = apps.filter(a => a.decision === 'Rejected').length;
   const pending     = apps.filter(a => a.decision === 'Pending').length;
   const respRate    = total ? Math.round((responded / total) * 100) : 0;
-  const intRate     = responded ? Math.round((interviews / responded) * 100) : 0;
-  const offerRate   = interviews ? Math.round((offers / interviews) * 100) : 0;
+  const intRate     = total ? Math.round((interviews / total) * 100) : 0;
+  const offerRate   = total ? Math.round((offers / total) * 100) : 0;
 
   // Header stat pills
   document.getElementById('stat-total').textContent      = total;
@@ -1247,8 +1249,8 @@ function updateStats() {
 
   document.getElementById('stats-bar').innerHTML = [
     statCard('Response Rate',    `${respRate}%`,  `${responded} of ${total} heard back`,           '#4ECDC4'),
-    statCard('Interview Rate',   `${intRate}%`,   responded ? `${interviews} of ${responded} responses led to interviews` : 'No responses yet', '#FFAB91'),
-    statCard('Offer Rate',       `${offerRate}%`, interviews ? `${offers} of ${interviews} interviews became offers` : 'No interviews yet',   '#DDA0DD'),
+    statCard('Interview Rate',   `${intRate}%`,   `${interviews} of ${total} applications got an interview`, '#FFAB91'),
+    statCard('Offer Rate',       `${offerRate}%`, `${offers} of ${total} applications got an offer`,         '#DDA0DD'),
   ].join('');
 }
 
@@ -1282,7 +1284,7 @@ function addLog(type, msg) {
   const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   const div = document.createElement('div');
   div.className = 'log-entry';
-  div.innerHTML = `<span class="log-time">${t}</span><span class="log-tag ${type||'info'}">${{rejection:'Rejection',interview:'Interview',offer:'Offer',info:'Info'}[type]||'Info'}</span><span class="log-msg">${esc(msg)}</span>`;
+  div.innerHTML = `<span class="log-time">${t}</span><span class="log-tag ${type||'info'}">${{rejection:'Rejection',interview:'Interview',offer:'Offer',applied:'Applied',info:'Info'}[type]||'Info'}</span><span class="log-msg">${esc(msg)}</span>`;
   log.insertBefore(div, log.firstChild);
   if (type!=='info') { newLogCount++; const b=document.getElementById('log-badge'); b.textContent=newLogCount; b.style.display='inline-block'; }
 }
@@ -1446,6 +1448,8 @@ function openGmailSetup() {
   const cid=localStorage.getItem('trackly_gmail_client_id'); if(cid) document.getElementById('gmail-client-id').value=cid;
   const key=localStorage.getItem('trackly_api_key'); if(key) document.getElementById('api-key-input').value=key;
   const iv=localStorage.getItem('trackly_scan_interval'); if(iv) document.getElementById('gmail-interval').value=iv;
+  document.getElementById('gmail-origin-hint').textContent=window.location.origin;
+  document.getElementById('gmail-redirect-hint').textContent=window.location.origin+window.location.pathname;
 }
 function closeGmailModal() { document.getElementById('gmail-modal').classList.remove('open'); }
 
@@ -1454,11 +1458,12 @@ function authorizeGmail() {
   const apiKey=document.getElementById('api-key-input').value.trim();
   const interval=document.getElementById('gmail-interval').value;
   if (!clientId) { alert('Please enter your Google OAuth Client ID.'); return; }
-  if (!apiKey)   { alert('Please enter your Anthropic API Key.'); return; }
+  if (window.location.protocol==='file:') { alert('Google sign-in does not work from a file:// page. Serve Trackly over http (e.g. python3 -m http.server 8000) and open http://localhost:8000/trackly.html.'); return; }
   localStorage.setItem('trackly_gmail_client_id', clientId);
-  localStorage.setItem('trackly_api_key', apiKey);
+  if (apiKey) localStorage.setItem('trackly_api_key', apiKey); else localStorage.removeItem('trackly_api_key');
   localStorage.setItem('trackly_scan_interval', interval);
-  const params = new URLSearchParams({ client_id:clientId, redirect_uri:window.location.origin+window.location.pathname, response_type:'token', scope:'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.metadata', prompt:'consent' });
+  // gmail.metadata must not be requested alongside readonly: Gmail rejects search queries (q=) when it is granted.
+  const params = new URLSearchParams({ client_id:clientId, redirect_uri:window.location.origin+window.location.pathname, response_type:'token', scope:'https://www.googleapis.com/auth/gmail.readonly', prompt:'consent' });
   window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
 }
 
@@ -1510,51 +1515,269 @@ async function scanEmails() {
   if(Date.now()>expiry){addLog('info','Gmail token expired — please reconnect.');return;}
   setScanState(true); addLog('info','Scanning inbox...');
   try {
-    const lastDate=localStorage.getItem('trackly_last_scan_date')||new Date(Date.now()-7*24*60*60*1000).toISOString().split('T')[0];
-    const q=encodeURIComponent(['subject:(interview OR "thank you for applying" OR "application received" OR "next steps"','OR "we regret" OR "unfortunately" OR "not moving forward" OR "position has been filled"','OR "pleased to offer" OR "offer of employment" OR "update on your application")',`after:${lastDate.replace(/-/g,'/')}`].join(' '));
-    const r=await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${q}&maxResults=15`,{headers:{Authorization:`Bearer ${gmailToken}`}});
-    if(!r.ok){if(r.status===401){addLog('info','Session expired — reconnect Gmail.');return;}throw new Error(`Gmail ${r.status}`);}
-    const data=await r.json(); const msgs=data.messages||[];
-    if(!msgs.length){addLog('info','No new relevant emails.');}
-    else{addLog('info',`Found ${msgs.length} email(s) — analyzing...`);for(const m of msgs.slice(0,6)){await processEmail(m.id);await delay(400);}}
-    localStorage.setItem('trackly_last_scan_date',new Date().toISOString().split('T')[0]);
+    const lastDate=localStorage.getItem('trackly_last_scan_date')||new Date(Date.now()-30*24*60*60*1000).toISOString().split('T')[0];
+    const q=encodeURIComponent(['(subject:(interview OR "thank you for applying" OR "thanks for applying" OR "application received" OR "received your application" OR "your application" OR "application confirmation" OR "application submitted" OR "next steps"','OR "we regret" OR "unfortunately" OR "not moving forward" OR "position has been filled"','OR offer OR "pleased to offer" OR "offer of employment" OR "update on your application")','OR "thank you for applying" OR "received your application" OR "pleased to offer you" OR "offer letter")',`after:${lastDate.replace(/-/g,'/')}`].join(' '));
+    let listed=[], pageToken='', pages=0;
+    do {
+      const r=await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${q}&maxResults=100${pageToken?`&pageToken=${pageToken}`:''}`,{headers:{Authorization:`Bearer ${gmailToken}`}});
+      if(!r.ok){if(r.status===401){addLog('info','Session expired — reconnect Gmail.');return;}throw new Error(`Gmail ${r.status}`);}
+      const data=await r.json();
+      listed=listed.concat(data.messages||[]); pageToken=data.nextPageToken||''; pages++;
+    } while(pageToken && pages<5);
+    const done=new Set(JSON.parse(localStorage.getItem('trackly_done_emails')||'[]'));
+    // Gmail lists newest first; process oldest first so a confirmation is tracked before its interview/offer.
+    const fresh=listed.filter(m=>!done.has(m.id)).reverse();
+    const batch=fresh.slice(0,GMAIL_BATCH_SIZE);
+    if(!batch.length){addLog('info','No new relevant emails.');}
+    else{addLog('info',`Found ${batch.length} new email(s) — analyzing...`);for(const m of batch){await processEmail(m.id);await delay(250);}}
+    // Only move the scan window forward once everything in it has been processed.
+    if(fresh.length<=GMAIL_BATCH_SIZE && !pageToken) localStorage.setItem('trackly_last_scan_date',new Date().toISOString().split('T')[0]);
     document.getElementById('last-scan').textContent='Last scan: '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   } catch(e){addLog('info','Scan error: '+e.message);}
   finally{setScanState(false);}
 }
 
+const GMAIL_BATCH_SIZE = 25;
+
+function markEmailDone(msgId) {
+  const done=JSON.parse(localStorage.getItem('trackly_done_emails')||'[]');
+  if(!done.includes(msgId)) done.push(msgId);
+  localStorage.setItem('trackly_done_emails',JSON.stringify(done.slice(-2000)));
+}
+
 async function processEmail(msgId) {
   const done=JSON.parse(localStorage.getItem('trackly_done_emails')||'[]');
   if(done.includes(msgId)) return;
-  const r=await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date`,{headers:{Authorization:`Bearer ${gmailToken}`}});
+  const r=await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msgId}?format=full`,{headers:{Authorization:`Bearer ${gmailToken}`}});
   if(!r.ok) return;
   const msg=await r.json(); const hdrs=msg.payload?.headers||[];
-  const sub=hdrs.find(h=>h.name==='Subject')?.value||'';
-  const from=hdrs.find(h=>h.name==='From')?.value||'';
-  const date=hdrs.find(h=>h.name==='Date')?.value||'';
+  const hdr=n=>hdrs.find(h=>h.name.toLowerCase()===n)?.value||'';
+  const email={
+    id:msg.id||msgId, threadId:msg.threadId||msgId,
+    subject:hdr('subject'), from:hdr('from'),
+    date:emailDateISO(msg.internalDate,hdr('date')),
+    body:emailBodyText(msg.payload)||msg.snippet||'',
+  };
+  try {
+    let result=classifyEmailRules(email);
+    const needsAI=!result || (!result.company && !findMatchingApp(null,result.role,emailText(email)));
+    if(needsAI && getApiKey()) {
+      const ai=await classifyEmailAI(email);
+      if(ai===undefined) return; // API error: leave unprocessed so the next scan retries
+      if(ai) result=ai;
+    }
+    markEmailDone(msgId);
+    if(!result) return;
+    applyEmailResult(result,email);
+  } catch(e){console.error('processEmail:',e);}
+}
+
+// ── Email parsing ─────────────────────────────────────────────
+function decodeB64Url(s) {
+  try { const bin=atob(s.replace(/-/g,'+').replace(/_/g,'/')); return new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0))); }
+  catch(e){ return ''; }
+}
+
+function emailBodyText(payload) {
+  let plain='', html='';
+  (function walk(p){
+    if(!p) return;
+    if(p.mimeType==='text/plain'&&p.body?.data) plain+=decodeB64Url(p.body.data)+'\n';
+    else if(p.mimeType==='text/html'&&p.body?.data) html+=decodeB64Url(p.body.data);
+    (p.parts||[]).forEach(walk);
+  })(payload);
+  if(!plain && html){
+    const doc=new DOMParser().parseFromString(html.replace(/<(br|\/p|\/div|\/tr|\/li|\/h\d)[^>]*>/gi,'$&\n'),'text/html');
+    doc.querySelectorAll('style,script,head').forEach(n=>n.remove());
+    plain=doc.body?.textContent||'';
+  }
+  return plain.replace(/\r/g,'').replace(/[ \t\u00a0]+/g,' ').replace(/\n\s*\n+/g,'\n\n').trim().slice(0,6000);
+}
+
+function emailDateISO(internalDate, headerDate) {
+  const d=internalDate?new Date(Number(internalDate)):new Date(headerDate);
+  return isNaN(d)?new Date().toLocaleDateString('en-CA'):d.toLocaleDateString('en-CA');
+}
+
+function emailText(e) { return `${e.subject}\n${e.from}\n${e.body}`; }
+
+// ── Rule-based classifier ─────────────────────────────────────
+// Sentences that are hypothetical ("if we decide not to move forward…", "we'll contact you to schedule an interview")
+// must not count as a rejection or interview invite, so those checks only look at assertive sentences.
+const CONDITIONAL_RE = /\b(if|whether|in the event|should we|should you|once we|we will (contact|reach out|be in touch)|we'll (contact|reach out|be in touch)|may|might|will be (invited|contacted)|(qualified|selected|shortlisted) (candidates|applicants)|candidates? (who|whose|that))\b/i;
+const EMAIL_RULES = {
+  rejection: /\bregret to inform\b|\b(will|are|be) not (be )?(moving|proceeding) forward\b|\bnot (to )?(move|proceed) forward\b|\b(move|moving|proceed|proceeding|go) forward with (other|another) (candidates?|applicants?)\b|\bpursue (other|another) (candidates?|applicants?)\b|\boffer to (another|a different) candidate\b|\bposition has been filled\b|\bno longer (being )?consider(ed|ing)\b|\b(have|were) not (been )?selected\b|\bhave decided not to\b|\bunfortunately,? (we|after|at this time)\b(?![^.]{0,80}\brespond)/i,
+  offer:     /\b(pleased|happy|delighted|excited|thrilled|glad) to (extend|offer|present) (you )?(an? |the |this |our )?(formal |verbal |written )?(offer|position|role)\b|\boffer (letter|of employment)\b|\bjob offer\b|\bextend(ing)? (you )?(an?|the|this) (formal |verbal |written )?offer\b|\bformal offer\b|\bemployment offer\b/i,
+  interviewSubject: /\binterview\b|\bphone screen\b|\bnext round\b|\b(schedule|scheduling) (a |an |your )?(call|chat|interview|conversation)\b/i,
+  interviewBody: /\b(would|we'd|we) (like|love) to (invite|schedule|set up|arrange|book|speak|chat|talk)\b|\binvite you (to|for)\b|\b(select|choose|pick|book) a (time|slot)\b|\byour availability\b|\bcalendly\.com\b|\bschedule (a|an|your) (call|interview|chat|time|phone screen)\b|\b(first|next|second|final|technical)[- ]round\b|\bphone screen\b|\binterview invitation\b/i,
+  confirmation: /\bthank(s| you) for (applying|your application|submitting your application|applying to|your interest in)\b|\bapplication (has been |was )?(received|submitted|confirmed|confirmation)\b|\b(we('ve| have)?|we) (received|got) your application\b|\byour application (was|has been) (sent|received|submitted)\b|\bsuccessfully (applied|submitted)\b|\bapplication to .{1,60} (has been|was) (received|submitted)\b/i,
+};
+
+function assertiveText(text) {
+  return text.split(/(?<=[.!?])\s+|\n+/).filter(s=>!CONDITIONAL_RE.test(s)).join('\n');
+}
+
+function classifyEmailRules(e) {
+  const subject=e.subject||'', body=e.body||'';
+  const firm=subject+'\n'+assertiveText(body);
+  let type=null;
+  if(EMAIL_RULES.rejection.test(firm)) type='rejection';
+  else if(EMAIL_RULES.offer.test(firm)) type='offer';
+  else if(EMAIL_RULES.interviewSubject.test(subject) || EMAIL_RULES.interviewBody.test(firm)) type='interview';
+  else if(EMAIL_RULES.confirmation.test(subject+'\n'+body)) type='confirmation';
+  if(!type) return null;
+  return { type, company:extractCompany(e), role:extractRole(e), via:'rules' };
+}
+
+const CO_PART = "[A-Z0-9](?:[\\w&'’\\-]|\\.(?=\\w))*";
+const CO = `(${CO_PART}(?:\\s+(?:&|and|of|${CO_PART})){0,4})`;
+const COMPANY_PATTERNS = [
+  new RegExp(`\\b(?:position|role|opening|job|opportunity|internship)\\s+(?:at|with)\\s+${CO}`),
+  new RegExp(`\\b(?:[Aa]ppl(?:y|ying|ied|ication)|[Ii]nterest)\\b[^.\\n]{0,80}?\\b(?:at|with)\\s+${CO}`),
+  new RegExp(`\\b(?:[Aa]pplying|[Aa]pplied|[Aa]pplication|[Ss]ent|[Aa]pply)\\s+to\\s+${CO}`),
+  new RegExp(`\\b[Ii]nterest in (?:joining\\s+)?(?:the\\s+)?${CO}`),
+  new RegExp(`\\b(?:[Jj]oin|[Jj]oining)\\s+(?:the\\s+)?${CO}\\s+team`),
+  new RegExp(`\\b(?:[Tt]eam|[Cc]areers?)\\s+at\\s+${CO}`),
+  new RegExp(`\\b(?:[Ii]nterview|[Oo]ffer)\\s+(?:at|with|from)\\s+${CO}`),
+  new RegExp(`\\bat\\s+${CO}\\s*$`, 'm'),
+];
+const COMPANY_STOP_RE = /^(the|this|that|our|your|us|you|we|it|a|an|hiring|careers?|recruiting|talent|team|linkedin|indeed|workday|greenhouse|lever|glassdoor|ziprecruiter|monday|tuesday|wednesday|thursday|friday|saturday|sunday|\d.*)$/i;
+const ROLE_WORD_RE = /\b(engineer|scientist|analyst|manager|developer|designer|intern|internship|associate|specialist|consultant|director|architect|researcher|coordinator|position|role)\b/i;
+const SENDER_TAG_RE = /\b(careers?|recruiting|recruitment|recruiters?|talent( acquisition)?|hiring( team)?|jobs?|hr|people( team)?|team|no-?reply|notifications?|via \w+)\b/gi;
+const ATS_DOMAIN_RE = /(greenhouse|lever|workday|myworkday|smartrecruiters|ashbyhq|icims|jobvite|taleo|successfactors|bamboohr|workable|recruitee|breezy|jazzhr|teamtailor|personio|linkedin|indeed|glassdoor|ziprecruiter|wellfound|gmail|googlemail|outlook|hotmail|yahoo|icloud|proton)/i;
+
+function cleanCompany(s) {
+  if(!s) return null;
+  s=s.replace(/[\s.,;:!?'’\-]+$/,'').replace(/\s+(and|of|&)$/i,'').replace(/'s$/,'').trim();
+  if(!s || s.length<2 || s.length>50 || COMPANY_STOP_RE.test(s) || ROLE_WORD_RE.test(s)) return null;
+  return s;
+}
+
+function companyFromSender(from) {
+  const m=from.match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>/);
+  const name=(m?m[1]:'').trim(); const addr=(m?m[2]:from).trim().toLowerCase();
+  const domain=addr.split('@')[1]||''; const labels=domain.split('.');
+  let label=labels.length>=2?labels[labels.length-2]:'';
+  if(/^(co|com|org|net|ac)$/.test(label)&&labels.length>=3) label=labels[labels.length-3];
+  const hadTag=new RegExp(SENDER_TAG_RE.source,'i').test(name);
+  const cleaned=cleanCompany(name.replace(SENDER_TAG_RE,' ').replace(/\s+(at|@|from)\s*$/i,'').replace(/^[\s\-–—|,:@]+|[\s\-–—|,:@]+$/g,'').replace(/\s+/g,' '));
+  if(cleaned && !ATS_DOMAIN_RE.test(cleaned) && (hadTag || (label && cleaned.toLowerCase().replace(/[^a-z0-9]/g,'').includes(label.replace(/[^a-z0-9]/g,''))))) return cleaned;
+  if(label && !ATS_DOMAIN_RE.test(domain)) return label.charAt(0).toUpperCase()+label.slice(1);
+  return null;
+}
+
+function extractCompany(e) {
+  for(const src of [e.subject||'', (e.body||'').slice(0,3000)]) {
+    for(const re of COMPANY_PATTERNS) {
+      const m=src.match(re); const c=cleanCompany(m&&m[1]);
+      if(c) return c;
+    }
+  }
+  return companyFromSender(e.from||'');
+}
+
+function extractRole(e) {
+  const patterns=[
+    /\b(?:for|of|in)\s+(?:the\s+)?(?:position\s+of\s+|role\s+of\s+)?([A-Z][^\n.,!?()]{1,60}?)\s+(?:position|role|opening|job|internship)\b/,
+    /\b(?:[Aa]pplying|[Aa]pplied|[Aa]pplication|[Aa]pply)\s+(?:for|to)\s+(?:the\s+)?([A-Z][^\n.,!?()]{1,60}?)\s+(?:at|with)\s+[A-Z]/,
+    /\b(?:Position|Role|Job Title|Job)\s*:\s*([^\n|]{2,60})/,
+    /(?:^|[-–—:|]\s*)([A-Z][^\n|–—:]{1,60}?)\s+at\s+[A-Z]/,
+  ];
+  for(const src of [e.subject||'', (e.body||'').slice(0,3000)]) {
+    for(const re of patterns) {
+      const m=src.match(re); if(!m) continue;
+      const role=m[1].replace(/^(the|a|an)\s+/i,'').trim();
+      if(role.length>=2 && !/^(your|our|thank|we|you|interview|application|update|re|fwd?|phone screen|call|chat|offer|next steps?)\b/i.test(role)) return role;
+    }
+  }
+  return null;
+}
+
+// ── Matching tracked applications ─────────────────────────────
+function normCo(s) {
+  return (s||'').toLowerCase().replace(/[^a-z0-9& ]+/g,' ').replace(/\b(inc|llc|ltd|limited|corp|corporation|co|gmbh|plc|group|the)\b/g,' ').replace(/\s+/g,' ').trim();
+}
+function normRole(s) { const r=(s||'').toLowerCase().replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim(); return r==='unknown'?'':r; }
+function rolesCompatible(a,b) { const x=normRole(a), y=normRole(b); return !x || !y || x===y || x.includes(y) || y.includes(x); }
+
+function findMatchingApp(company, role, text) {
+  const c=normCo(company), t=' '+normCo(text)+' ';
+  let best=null, bestScore=0;
+  for(const a of apps) {
+    const ac=normCo(a.company); if(!ac||ac==='unknown') continue;
+    let s=0;
+    if(c && ac===c) s=3;
+    else if(c && c.length>=3 && ac.length>=3 && (ac.includes(c)||c.includes(ac))) s=2;
+    else if(ac.length>=3 && t.includes(' '+ac+' ')) s=1;
+    if(!s) continue;
+    if(role && normRole(a.role) && rolesCompatible(a.role,role)) s+=2;
+    if(s>bestScore || (s===bestScore && a.id>best.id)) { best=a; bestScore=s; }
+  }
+  return best;
+}
+
+// ── Optional AI fallback ──────────────────────────────────────
+async function classifyEmailAI(e) {
   const appsJson=JSON.stringify(apps.map(a=>({id:a.id,company:a.company,role:a.role})));
   const prompt=`You are an email classifier for a job tracker. Return ONLY valid JSON, no backticks.
-Email: Subject:"${sub}" From:"${from}" Date:"${date}"
+Email: Subject:"${e.subject}" From:"${e.from}" Date:"${e.date}"
+Body:"""${e.body.slice(0,2000)}"""
 Tracked apps:${appsJson}
-Return: {"isJobRelated":bool,"emailType":"rejection"|"interview_invite"|"offer"|"info"|"not_related","matchedAppId":number|null,"matchedCompany":"string","summary":"one sentence","updates":{"response":"Yes"|"No"|"Pending"|null,"round1":bool|null,"round2":bool|null,"round3":bool|null,"decision":"Pending"|"Offer"|"Rejected"|null}}`;
+Return: {"isJobRelated":bool,"emailType":"application_confirmation"|"rejection"|"interview_invite"|"offer"|"info"|"not_related","matchedAppId":number|null,"company":"string|null","role":"string|null","summary":"one sentence"}`;
   try {
-    const apiKey=getApiKey(); if(!apiKey) return;
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:32000,messages:[{role:'user',content:prompt}]})});
-    if(!res.ok) return;
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})});
+    if(!res.ok){addLog('info',`AI fallback unavailable (API ${res.status}).`);return undefined;}
     const d=await res.json(); const raw=d.content.find(b=>b.type==='text')?.text||'';
-    const m=raw.match(/\{[\s\S]*\}/); if(!m) return;
-    const result=JSON.parse(m[0]);
-    if(!result.isJobRelated||result.emailType==='not_related') return;
-    done.push(msgId); localStorage.setItem('trackly_done_emails',JSON.stringify(done.slice(-300)));
-    let updated=false;
-    if(result.matchedAppId!=null){const idx=apps.findIndex(a=>a.id===result.matchedAppId);if(idx!==-1){const u=result.updates||{};['response','round1','round2','round3','decision'].forEach(k=>{if(u[k]!=null)apps[idx][k]=u[k];});updated=true;}}
-    save();
-    const logTypeMap={rejection:'rejection',interview_invite:'interview',offer:'offer',info:'info'};
-    addLog(logTypeMap[result.emailType]||'info',`${result.matchedCompany||'Unknown'}: ${result.summary}${updated?' — updated.':''}`);
-    const toastLabel={rejection:'❌ Rejection',interview_invite:'📅 Interview',offer:'🎉 Offer',info:'📧 Update'};
-    showToast(toastLabel[result.emailType]||'📧 Update',result.matchedCompany||'Unknown',result.summary+(updated?' Tracker updated.':''));
-    if(result.matchedAppId!=null){setTimeout(()=>{const row=document.getElementById(`row-${result.matchedAppId}`);if(row){row.classList.add('row-flash');setTimeout(()=>row.classList.remove('row-flash'),1400);}},120);}
-  } catch(e){console.error('processEmail:',e);}
+    const m=raw.match(/\{[\s\S]*\}/); if(!m) return null;
+    const out=JSON.parse(m[0]);
+    if(!out.isJobRelated||out.emailType==='not_related') return null;
+    const type={application_confirmation:'confirmation',interview_invite:'interview',offer:'offer',rejection:'rejection'}[out.emailType]||'info';
+    return { type, company:out.company||null, role:out.role||null, matchedAppId:out.matchedAppId??null, summary:out.summary, via:'ai' };
+  } catch(err){ console.error('classifyEmailAI:',err); return undefined; }
+}
+
+// ── Apply a classified email to the tracker ───────────────────
+function applyEmailResult(r, e) {
+  const text=emailText(e);
+  let app=(r.matchedAppId!=null && apps.find(a=>a.id===r.matchedAppId))
+       || apps.find(a=>(a.emailThreads||[]).includes(e.threadId))
+       || findMatchingApp(r.company, r.role, text);
+  let action;
+  const create=()=>{
+    app={id:Date.now()+Math.floor(Math.random()*1000),company:r.company,role:r.role||'Unknown',date:e.date,city:'Unknown',referral:'No',response:'Pending',round1:false,round2:false,round3:false,decision:'Pending',source:'gmail'};
+    apps.unshift(app);
+  };
+  if(r.type==='confirmation') {
+    if(app && r.company && !rolesCompatible(app.role,r.role) && !(app.emailThreads||[]).includes(e.threadId)) app=null;
+    if(app) action='already tracked — skipped duplicate';
+    else if(r.company) { create(); action='new application added'; }
+    else action="couldn't identify the company";
+  } else if(r.type==='interview' || r.type==='offer') {
+    if(!app && r.company) { create(); action='added (no earlier confirmation found) and '; }
+    if(app) {
+      app.response='Yes';
+      if(r.type==='interview') { if(!(app.round1||app.round2||app.round3)) app.round1=true; }
+      else app.decision='Offer';
+      action=(action||'')+(r.type==='interview'?'moved to Interview':'moved to Offer');
+    } else action='no matching application found';
+  } else if(r.type==='rejection') {
+    if(app) { app.response='Yes'; if(app.decision!=='Offer') app.decision='Rejected'; action='marked Rejected'; }
+    else action='no matching application found';
+  } else action=r.summary||'job-related update';
+
+  if(app) {
+    app.emailThreads=[...new Set([...(app.emailThreads||[]),e.threadId])].slice(-20);
+    if(normRole(app.role)==='' && r.role) app.role=r.role;
+  }
+  save();
+  const co=app?.company||r.company||'Unknown';
+  const role=app?.role&&app.role!=='Unknown'?` — ${app.role}`:'';
+  const labelType={confirmation:'applied',interview:'interview',offer:'offer',rejection:'rejection'}[r.type]||'info';
+  const kind={confirmation:'Application confirmation',interview:'Interview request',offer:'Offer',rejection:'Rejection'}[r.type]||'Update';
+  addLog(labelType,`${co}${role}: ${kind} — ${action}.${r.via==='ai'?' (AI)':''}`);
+  const toastLabel={confirmation:'✦ Applied',rejection:'❌ Rejection',interview:'📅 Interview',offer:'🎉 Offer'}[r.type]||'📧 Update';
+  showToast(toastLabel,co,`${kind}${role} — ${action}.`);
+  if(app){const id=app.id;setTimeout(()=>{const row=document.getElementById(`row-${id}`);if(row){row.classList.add('row-flash');setTimeout(()=>row.classList.remove('row-flash'),1400);}},120);}
 }
 
 function setScanState(on) {
