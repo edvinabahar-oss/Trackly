@@ -1,0 +1,11 @@
+{
+  "name": "trackly-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node gmail-sample-emails.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.48.0"
+  }
+}
