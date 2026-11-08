@@ -791,7 +791,7 @@ footer {
     <div class="stat-pill"><span class="dot" style="background:var(--accent3)"></span>Interviews <strong id="stat-interviews">0</strong></div>
     <div class="stat-pill"><span class="dot" style="background:var(--accent6)"></span>Offers <strong id="stat-offers">0</strong></div>
     <div id="gmail-status-wrap">
-      <button class="btn-gmail" id="btn-gmail-connect" onclick="openGmailSetup()">
+      <button class="btn-gmail" id="btn-gmail-connect" onclick="connectGmail()">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z" fill="white"/></svg>
         Connect Gmail
       </button>
@@ -833,10 +833,13 @@ footer {
         <p>Trackly scans your inbox for application confirmations, rejections, interview invites & offers — and updates the table automatically.</p>
       </div>
     </div>
-    <button class="btn-gmail" onclick="openGmailSetup()" style="flex-shrink:0;position:relative;z-index:1">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z" fill="white"/></svg>
-      Set Up Gmail
-    </button>
+    <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;position:relative;z-index:1">
+      <button class="btn-gmail" id="btn-gmail-banner-connect" onclick="connectGmail()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z" fill="white"/></svg>
+        Connect Gmail
+      </button>
+      <button id="btn-gmail-settings" onclick="openGmailSetup()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;text-decoration:underline;padding:0">Settings</button>
+    </div>
   </div>
 
   <!-- EMAIL LOG -->
@@ -1463,6 +1466,22 @@ function closeGmailModal() { document.getElementById('gmail-modal').classList.re
 // Registered for http://localhost:8000 and https://edvinabahar-oss.github.io/Trackly/trackly.html.
 // Not a secret: OAuth client IDs are public by design.
 const DEFAULT_GMAIL_CLIENT_ID = '89086489779-er6lib8c6dk55hfqs4g5e1936bmcbdnq.apps.googleusercontent.com';
+
+// Client IDs saved by older Trackly versions aren't registered for this site, so Google sign-in could never
+// succeed with them and Connect Gmail would keep failing.
+function migrateGmailClientId() {
+  const saved=localStorage.getItem('trackly_gmail_client_id');
+  if(saved && saved!==DEFAULT_GMAIL_CLIENT_ID) localStorage.setItem('trackly_gmail_client_id', DEFAULT_GMAIL_CLIENT_ID);
+}
+
+// The registered client ID needs no setup, so go straight to Google; the modal is only for settings or file:// pages.
+function connectGmail() {
+  if (window.location.protocol==='file:') { openGmailSetup(); return; }
+  const clientId=localStorage.getItem('trackly_gmail_client_id')||DEFAULT_GMAIL_CLIENT_ID;
+  localStorage.setItem('trackly_gmail_client_id', clientId);
+  requestNotifyPermission();
+  window.location.assign(gmailAuthUrl(clientId, 'connect'));
+}
 
 function authorizeGmail() {
   const clientId=document.getElementById('gmail-client-id').value.trim()||DEFAULT_GMAIL_CLIENT_ID;
@@ -2386,6 +2405,7 @@ document.getElementById('li-modal').addEventListener('click', e=>{if(e.target===
 // ═══════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════
+migrateGmailClientId();
 handleOAuthCallback();
 if(gmailTokenValid()) onGmailConnected();
 else if(gmailWasConnected()) { localStorage.setItem('trackly_gmail_connected','1'); if(!renewGmailToken()) showGmailPaused(); }
