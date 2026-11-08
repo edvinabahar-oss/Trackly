@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node gmail-sample-emails.mjs"
+    "test": "node gmail-sample-emails.mjs && node gmail-token-renewal.mjs"
   },
   "devDependencies": {
     "playwright-core": "^1.48.0"
