@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 const URL_ = process.env.TRACKLY_URL || 'http://localhost:8000/trackly.html';
 const engine = process.env.BROWSER === 'chromium' ? chromium : webkit;
 const DEFAULT_ID = '89086489779-er6lib8c6dk55hfqs4g5e1936bmcbdnq.apps.googleusercontent.com';
+const STALE_ID = '538567438708-10kgtak498gb4gmbvuk6p0m3hmi42ei0.apps.googleusercontent.com';
 
 const browser = await engine.launch(engine === chromium ? { executablePath: process.env.CHROME_PATH || undefined } : {});
 const ctx = await browser.newContext();
@@ -36,26 +37,39 @@ await ctx.route('https://gmail.googleapis.com/**', route => {
   listCalls.push(Date.now());
   return route.fulfill({ json: { messages: [] } });
 });
-await ctx.addInitScript(() => {
+await ctx.addInitScript(staleId => {
   if (sessionStorage.getItem('seeded')) return;
   sessionStorage.setItem('seeded', '1');
   localStorage.clear();
   localStorage.setItem('trackly_visited', '1');
   localStorage.setItem('trackly_user_name', 'Edvina');
-});
+  // Saved by an older Trackly version before the registered client ID became the default.
+  localStorage.setItem('trackly_gmail_client_id', staleId);
+}, STALE_ID);
 
 const connected = () => page.evaluate(() => document.getElementById('stext')?.textContent || '');
-const connect = async () => {
-  await page.click('#btn-gmail-connect');
-  assert.equal(await page.inputValue('#gmail-client-id'), DEFAULT_ID, 'client ID is prefilled');
-  assert.equal(await page.isEditable('#gmail-client-id'), true, 'client ID stays editable');
-  await Promise.all([page.waitForURL(u => u.href.startsWith(URL_) && !u.hash, { timeout: 15000 }).catch(() => {}), page.click('text=Authorize with Google')]);
+const backFromGoogle = () => page.waitForURL(u => u.href.startsWith(URL_) && !u.hash, { timeout: 15000 }).catch(() => {});
+// Connect Gmail goes straight to Google; the setup modal only opens from Settings.
+const connect = async (via = '#btn-gmail-connect') => {
+  const before = authRequests.length;
+  if (via === 'settings') {
+    await page.click('#btn-gmail-settings');
+    assert.equal(await page.inputValue('#gmail-client-id'), DEFAULT_ID, 'client ID is prefilled');
+    assert.equal(await page.isEditable('#gmail-client-id'), true, 'client ID stays editable');
+    await Promise.all([backFromGoogle(), page.click('text=Authorize with Google')]);
+  } else {
+    await Promise.all([backFromGoogle(), page.click(via)]);
+  }
   await page.waitForTimeout(1500);
+  assert.equal(authRequests.length, before + 1, 'went to Google');
+  assert.equal(authRequests.at(-1).client_id, DEFAULT_ID);
 };
 
 await page.goto(URL_);
 assert.deepEqual(errors, [], 'script parses and runs');
 assert.equal(await page.evaluate(() => /\(\?<[=!]/.test([...document.scripts].map(s => s.textContent).join(''))), false, 'no regex lookbehind');
+assert.equal(await page.evaluate(() => localStorage.getItem('trackly_gmail_client_id')), DEFAULT_ID, 'stale saved client ID migrated');
+assert.equal(await page.evaluate(() => document.getElementById('gmail-modal').classList.contains('open')), false, 'setup modal not open on load');
 
 // Cancel on Google's screen: no token, a clear message.
 authMode = 'deny';
@@ -65,14 +79,14 @@ assert.equal(await page.evaluate(() => localStorage.getItem('trackly_gmail_token
 
 // A response whose state doesn't match is rejected.
 authMode = 'forged';
-await connect();
+await connect('settings');
 assert.match(dialogs.pop() || '', /could not be verified/);
 assert.equal(await page.evaluate(() => localStorage.getItem('trackly_gmail_token')), null);
 
 // Real grant.
 authMode = 'grant';
 listCalls.length = 0;
-await connect();
+await connect('#btn-gmail-banner-connect');
 const req = authRequests.at(-1);
 assert.equal(req.client_id, DEFAULT_ID);
 assert.equal(req.redirect_uri, URL_);
@@ -92,6 +106,7 @@ await page.reload();
 await page.waitForTimeout(1500);
 assert.equal(await connected(), 'Gmail Connected', 'token survives reload');
 assert.equal(listCalls.length, 1);
+assert.equal(await page.evaluate(() => document.getElementById('gmail-modal').classList.contains('open')), false, 'setup modal stays closed when connected');
 assert.deepEqual(dialogs, []);
 assert.deepEqual(errors, []);
 
