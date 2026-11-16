@@ -1097,6 +1097,23 @@ footer {
   </div>
 </div>
 
+<div class="modal-overlay" id="key-modal" style="z-index:700">
+  <div class="modal" style="max-width:460px">
+    <button class="btn-x" id="key-modal-cancel" aria-label="Close">×</button>
+    <h2 style="margin-bottom:8px">Turn on AI auto-fill ✦</h2>
+    <p style="font-size:13px;line-height:1.6;color:var(--ink-light);margin-bottom:18px">Trackly uses Claude to read a job listing and fill in the company, role, location and date for you. To do that, it needs your own Anthropic API key. Reading one listing costs a fraction of a cent.</p>
+    <div class="setup-steps" style="margin-bottom:16px">
+      <div class="setup-step"><div class="snum">1</div><div class="sbody"><strong>Get a key</strong><p>Sign in at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a> and create an API key.</p></div></div>
+      <div class="setup-step"><div class="snum">2</div><div class="sbody"><strong>Paste it here</strong><div class="form-field" style="margin-top:8px"><input type="password" id="key-modal-input" placeholder="sk-ant-..." autocomplete="off" spellcheck="false"/></div><div id="key-modal-error" style="display:none;margin-top:6px;font-size:12px;color:#D64545"></div></div></div>
+    </div>
+    <div class="privacy-note">🔒 Your key is saved only in this browser and is sent only to Anthropic.</div>
+    <div class="modal-footer" style="justify-content:space-between;align-items:center">
+      <button class="btn-secondary" id="key-modal-manual">Add manually instead</button>
+      <button class="btn-primary" id="key-modal-save">Save key</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ═══════════════════════════════════════════════════════════════
 // STATE
@@ -1112,6 +1129,88 @@ let importRows  = [];
 let importHeaders = [];
 
 function getApiKey() { return localStorage.getItem('trackly_api_key') || ''; }
+
+// ═══════════════════════════════════════════════════════════════
+// CLAUDE API — one place for every AI call
+// ═══════════════════════════════════════════════════════════════
+const CLAUDE_MODEL = 'claude-sonnet-5-5';
+
+function friendlyApiError(status, msg) {
+  if (status === 401) return 'Your Anthropic API key was rejected. Check it and try again.';
+  if (status === 403) return 'This API key doesn\'t have access to Claude. Check your Anthropic account.';
+  if (status === 429) return 'Too many requests right now. Try again in a minute.';
+  if (status === 529 || status >= 500) return 'Claude is busy right now. Try again shortly.';
+  return msg || `Request failed (${status}).`;
+}
+
+// Sends one prompt and returns the reply text. Throws an Error with a readable message.
+async function callClaude(prompt, { maxTokens = 4000 } = {}) {
+  const key = getApiKey();
+  if (!key) { const e = new Error('Add your Anthropic API key to use AI features.'); e.status = 0; throw e; }
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-beta': 'server-side-fallback-2026-07-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: CLAUDE_MODEL,
+      max_tokens: maxTokens,
+      output_config: { effort: 'low' },
+      fallbacks: 'default',
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    const e = new Error(friendlyApiError(res.status, body?.error?.message));
+    e.status = res.status; throw e;
+  }
+  const d = await res.json();
+  if (d.stop_reason === 'refusal') throw new Error('Claude couldn\'t process that text. Try adding the job manually.');
+  return (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+}
+
+function parseJsonReply(raw) {
+  const m = raw.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error('Couldn\'t read the AI response. Try again or add the job manually.');
+  return JSON.parse(m[0]);
+}
+
+// Resolves with a key, or null if the user cancels. Replaces the old browser prompt().
+function ensureApiKey() {
+  const existing = getApiKey();
+  if (existing) return Promise.resolve(existing);
+  return new Promise(resolve => {
+    const ov = document.getElementById('key-modal');
+    const inp = document.getElementById('key-modal-input');
+    const err = document.getElementById('key-modal-error');
+    inp.value = ''; err.style.display = 'none';
+    ov.classList.add('open');
+    setTimeout(() => inp.focus(), 50);
+    const done = val => {
+      ov.classList.remove('open');
+      document.getElementById('key-modal-save').onclick = null;
+      document.getElementById('key-modal-cancel').onclick = null;
+      document.getElementById('key-modal-manual').onclick = null;
+      inp.onkeydown = null;
+      resolve(val);
+    };
+    const save = () => {
+      const v = inp.value.trim();
+      if (!/^sk-ant-/.test(v)) { err.textContent = 'That doesn\'t look like an Anthropic key. It should start with sk-ant-'; err.style.display = 'block'; return; }
+      localStorage.setItem('trackly_api_key', v);
+      done(v);
+    };
+    document.getElementById('key-modal-save').onclick = save;
+    document.getElementById('key-modal-cancel').onclick = () => done(null);
+    document.getElementById('key-modal-manual').onclick = () => { done(null); if (typeof closeLiModal === 'function') closeLiModal(); openAddManual(); };
+    inp.onkeydown = e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') done(null); };
+  });
+}
 
 // ═══════════════════════════════════════════════════════════════
 // RENDER
@@ -1837,9 +1936,9 @@ Tracked apps:${appsJson}
 ${e.bulk?'This email was sent as mass mail (newsletter/marketing headers).\n':''}Newsletters, job alerts, career tips, course or event promotions and recruiting marketing are "not_related", even when they mention interviews or offers. Use "interview_invite" only when a specific employer invites the recipient to interview, and "offer" only when an employer offers the recipient a job.
 Return: {"isJobRelated":bool,"emailType":"application_confirmation"|"rejection"|"interview_invite"|"offer"|"info"|"not_related","matchedAppId":number|null,"company":"string|null","role":"string|null","summary":"one sentence"}`;
   try {
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':getApiKey(),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})});
-    if(!res.ok){addLog('info',`AI fallback unavailable (API ${res.status}).`);return undefined;}
-    const d=await res.json(); const raw=d.content.find(b=>b.type==='text')?.text||'';
+    let raw;
+    try { raw=await callClaude(prompt,{maxTokens:2000}); }
+    catch(apiErr){ addLog('info',`AI fallback unavailable: ${apiErr.message}`); return undefined; }
     const m=raw.match(/\{[\s\S]*\}/); if(!m) return null;
     const out=JSON.parse(m[0]);
     if(!out.isJobRelated||out.emailType==='not_related') return null;
@@ -1908,23 +2007,21 @@ async function addJob() {
   if(isAdding) return;
   const input=document.getElementById('job-input'); const text=input.value.trim();
   if(!text){showErr('Please paste some job details first.');return;}
-  setLoading(true); hideErr();
-  const apiKey=getApiKey()||prompt('Enter your Anthropic API Key (stored locally):');
-  if(!apiKey){setLoading(false);return;}
-  localStorage.setItem('trackly_api_key',apiKey);
+  hideErr();
+  if(!(await ensureApiKey())) return;
+  setLoading(true);
   const pt=`Extract job fields from the text below. Return ONLY JSON, no markdown.
 Fields: company(str), role(str), date(YYYY-MM-DD, today=${new Date().toISOString().split('T')[0]}), city(str), referral("Yes"/"No"), response("Yes"/"No"/"Pending"), round1(bool), round2(bool), round3(bool), decision("Pending"/"Offer"/"Rejected"/"Withdrew")
 Text: """${text}"""`;
   try {
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:32000,messages:[{role:'user',content:pt}]})});
-    if(!res.ok){const e=await res.json().catch(()=>{});throw new Error(e?.error?.message||`API ${res.status}`);}
-    const d=await res.json(); const raw=d.content.find(b=>b.type==='text')?.text||'';
-    const jm=raw.match(/\{[\s\S]*\}/); if(!jm) throw new Error('Could not parse response.');
-    const p=JSON.parse(jm[0]);
+    const p=parseJsonReply(await callClaude(pt));
     apps.unshift({id:Date.now(),company:p.company||'Unknown',role:p.role||'Unknown',date:p.date||new Date().toISOString().split('T')[0],city:p.city||'Unknown',referral:p.referral||'No',response:p.response||'Pending',round1:!!p.round1,round2:!!p.round2,round3:!!p.round3,decision:p.decision||'Pending'});
     save(); input.value='';
     showToast('✦ Added','Application tracked',`${p.company||'Unknown'} — ${p.role||'Unknown'}`);
-  } catch(e){showErr('Error: '+e.message);console.error(e);}
+  } catch(e){
+    if(e.status===401) localStorage.removeItem('trackly_api_key');
+    showErr(e.message);console.error(e);
+  }
   finally{setLoading(false);}
 }
 
@@ -2327,27 +2424,15 @@ async function submitLiModal() {
   const input = text || (url ? `LinkedIn Job URL: ${url}` : '');
   if (!input) { showLiError('Please paste a job URL or description.'); return; }
 
+  if (!(await ensureApiKey())) return;
   setLiLoading(true);
-  const apiKey = getApiKey() || prompt('Enter your Anthropic API Key:');
-  if (!apiKey) { setLiLoading(false); return; }
-  localStorage.setItem('trackly_api_key', apiKey);
 
-  const prompt = `Extract job application fields from this LinkedIn job posting. Return ONLY a JSON object, no markdown.
+  const liPrompt = `Extract job application fields from this LinkedIn job posting. Return ONLY a JSON object, no markdown.
 Fields: company(str), role(str), date(YYYY-MM-DD, use today ${new Date().toISOString().split('T')[0]}), city(str or "Remote"), referral("Yes"/"No"), response("Pending"), round1(false), round2(false), round3(false), decision("Pending")
 Text: """${input}"""`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:32000, messages:[{role:'user',content:prompt}] })
-    });
-    if (!res.ok) throw new Error(`API ${res.status}`);
-    const d   = await res.json();
-    const raw = d.content.find(b=>b.type==='text')?.text||'';
-    const jm  = raw.match(/\{[\s\S]*\}/);
-    if (!jm) throw new Error('Could not parse response.');
-    const p = JSON.parse(jm[0]);
+    const p = parseJsonReply(await callClaude(liPrompt));
     apps.unshift({
       id: Date.now(), company: p.company||'Unknown', role: p.role||'Unknown',
       date: p.date||new Date().toISOString().split('T')[0], city: p.city||'Unknown',
@@ -2357,7 +2442,10 @@ Text: """${input}"""`;
     save();
     closeLiModal();
     showToast('🔗 LinkedIn', p.company||'Unknown', `${p.role} added to Trackly!`);
-  } catch(e) { showLiError('Error: ' + e.message); }
+  } catch(e) {
+    if (e.status === 401) localStorage.removeItem('trackly_api_key');
+    showLiError(e.message);
+  }
   finally { setLiLoading(false); }
 }
 
