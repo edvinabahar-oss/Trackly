@@ -655,6 +655,183 @@ footer {
   .form-grid { grid-template-columns: 1fr; }
   .stat-pill { display: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   2026-11 REDESIGN — list-first layout
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --st-applied:#9B97A8; --st-heard:#45B7D1; --st-interview:#2BB3A9; --st-offer:#E59A3A; --st-closed:#D9645F;
+}
+main { max-width: 1120px; }
+header { height: 64px; }
+.logo svg { width: 34px; height: 34px; }
+.logo-text { font-size: 21px; }
+.header-right { gap: 10px; }
+
+.gmail-chip { display:flex; align-items:center; gap:7px; background:transparent; border:1.5px dashed var(--border); color:var(--ink-light);
+  padding:8px 14px; border-radius:100px; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; cursor:pointer; transition:all .15s; white-space:nowrap; }
+.gmail-chip:hover { border-color:var(--ink); color:var(--ink); }
+.chip-dot { width:7px; height:7px; border-radius:50%; background:var(--muted); }
+#gmail-status-wrap .btn-gmail { background:var(--surface); color:var(--ink); border:1.5px solid var(--border); box-shadow:none; }
+#gmail-status-wrap .btn-gmail:hover { border-color:var(--ink); }
+
+.btn-new { display:flex; align-items:center; gap:8px; background:var(--ink); color:#fff; border:none; padding:10px 18px; border-radius:100px;
+  font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.12em; text-transform:uppercase; cursor:pointer; white-space:nowrap;
+  box-shadow:0 2px 10px rgba(26,26,46,.25); transition:transform .15s, background .15s; }
+.btn-new:hover { background:#2d2d4e; transform:translateY(-1px); }
+.btn-new .plus { font-size:16px; line-height:1; font-family:'Plus Jakarta Sans',sans-serif; }
+
+#greeting-bar { margin-bottom:18px; }
+#greeting-text { font-family:'Lora',Georgia,serif; font-size:30px; font-weight:600; font-style:italic; color:var(--ink); letter-spacing:-0.01em; line-height:1.25; }
+#greeting-sub { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); letter-spacing:0.1em; text-transform:uppercase; margin-top:4px; }
+
+/* quick add */
+.quick-add { display:flex; align-items:center; gap:10px; background:var(--surface); border:1.5px solid var(--border); border-radius:100px;
+  padding:6px 6px 6px 18px; box-shadow:var(--shadow-sm); transition:border-color .15s, box-shadow .15s; margin-bottom:18px; }
+.quick-add:focus-within { border-color:var(--ink); box-shadow:0 0 0 4px rgba(26,26,46,.06); }
+.quick-spark { color:var(--accent2); font-size:15px; }
+.quick-add input { flex:1; min-width:0; border:none; outline:none; background:transparent; font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; color:var(--ink); padding:8px 0; }
+.quick-add input::placeholder { color:var(--muted); }
+.quick-btn { border:none; background:var(--canvas); border-radius:100px; padding:9px 14px; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-light); cursor:pointer; white-space:nowrap; transition:all .15s; }
+.quick-btn:hover { background:var(--ink); color:#fff; }
+
+/* pipeline */
+.pipeline { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow-sm); margin-bottom:14px; }
+.stages { display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
+.stages::-webkit-scrollbar { display:none; }
+.stage { flex:1 0 auto; min-width:104px; text-align:left; background:var(--canvas); border:1.5px solid transparent; border-radius:8px; padding:10px 12px; cursor:pointer; transition:all .15s; color:var(--ink); }
+.stage:hover { border-color:var(--border); }
+.stage[aria-pressed="true"] { background:var(--ink); color:#fff; }
+.stage .n { display:block; font-family:'Lora',Georgia,serif; font-size:22px; font-weight:600; line-height:1; }
+.stage .l { display:flex; align-items:center; gap:6px; margin-top:6px; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-light); white-space:nowrap; }
+.stage[aria-pressed="true"] .l { color:rgba(255,255,255,.7); }
+.stage .l i { width:7px; height:7px; border-radius:50%; background:var(--c); }
+.funnel { display:flex; height:6px; border-radius:100px; overflow:hidden; margin-top:14px; background:var(--canvas); }
+.funnel span { background:var(--c); }
+#stats-bar { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; margin-top:12px; font-family:'DM Mono',monospace; font-size:11px; color:var(--ink-light); }
+#stats-bar b { color:var(--ink); font-weight:500; }
+#stats-bar .rate-sub { display:block; margin-top:2px; color:var(--muted); font-size:10px; }
+
+/* nudge */
+.nudge { display:flex; align-items:center; gap:12px; background:#FFF8E1; border:1.5px solid #F4E3A6; border-radius:var(--radius); padding:12px 14px; font-size:13px; color:#6B5A1E; margin-bottom:14px; }
+.nudge-ico { font-size:18px; }
+.nudge b { color:#4A3D10; }
+.nudge-btn { margin-left:auto; border:none; background:transparent; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:#6B5A1E; text-decoration:underline; text-underline-offset:3px; white-space:nowrap; cursor:pointer; }
+
+#email-log-wrap { margin-bottom:14px; }
+
+/* toolbar */
+.table-section { margin-top:22px; }
+.apps-toolbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+.apps-toolbar .table-title-wrap { margin-right:auto; display:flex; align-items:baseline; gap:10px; }
+.apps-search { display:flex; align-items:center; gap:8px; background:var(--surface); border:1.5px solid var(--border); border-radius:100px; padding:8px 14px; flex:0 1 260px; min-width:0; transition:border-color .15s; }
+.apps-search:focus-within { border-color:var(--ink); }
+.apps-search input { border:none; outline:none; background:transparent; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; width:100%; color:var(--ink); }
+.seg { display:flex; background:var(--surface); border:1.5px solid var(--border); border-radius:100px; padding:3px; }
+.seg button { border:none; background:transparent; border-radius:100px; padding:6px 12px; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-light); cursor:pointer; }
+.seg button[aria-pressed="true"] { background:var(--ink); color:#fff; }
+.icon-btn { width:36px; height:36px; border-radius:50%; border:1.5px solid var(--border); background:var(--surface); color:var(--ink-light); font-size:16px; cursor:pointer; display:grid; place-items:center; transition:all .15s; }
+.icon-btn:hover { border-color:var(--ink); color:var(--ink); }
+.menu-wrap { position:relative; }
+.menu { position:absolute; right:0; top:calc(100% + 6px); min-width:200px; background:var(--surface); border:1.5px solid var(--border); border-radius:10px; box-shadow:var(--shadow-lg); padding:6px; display:none; z-index:150; }
+.menu.open { display:block; }
+.menu button { display:block; width:100%; text-align:left; border:none; background:transparent; padding:9px 10px; border-radius:6px; font-family:'Plus Jakarta Sans',sans-serif; font-size:13px; color:var(--ink); cursor:pointer; }
+.menu button:hover { background:var(--canvas); }
+.menu button.danger { color:#D64545; }
+.apps-toolbar.is-empty .apps-search, .apps-toolbar.is-empty .seg { display:none; }
+.filter-note { display:flex; align-items:center; gap:10px; font-family:'DM Mono',monospace; font-size:11px; color:var(--ink-light); margin:-2px 0 10px; }
+.filter-note button { border:none; background:transparent; color:var(--ink); text-decoration:underline; text-underline-offset:3px; font:inherit; cursor:pointer; }
+
+/* list */
+.app-list { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-sm); }
+.app-row { display:grid; grid-template-columns:40px minmax(0,1.6fr) minmax(0,1fr) minmax(0,1.5fr) 32px; align-items:center; gap:14px; padding:14px 16px; border-top:1px solid var(--border); cursor:pointer; transition:background .15s; position:relative; }
+.app-row:first-child { border-top:none; border-radius:var(--radius) var(--radius) 0 0; }
+.app-row:last-child { border-radius:0 0 var(--radius) var(--radius); }
+.app-row:hover { background:#FBFAF7; }
+.app-row:focus-visible { outline:2px solid var(--ink); outline-offset:-2px; }
+.av { width:40px; height:40px; border-radius:10px; display:grid; place-items:center; font-family:'Lora',Georgia,serif; font-size:16px; font-weight:700; color:#fff; background:var(--c); }
+.who { min-width:0; }
+.who .co { font-family:'Lora',Georgia,serif; font-size:16px; font-weight:600; letter-spacing:-.01em; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.who .ro { font-size:13px; color:var(--ink-light); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.who .ro .city-inline { display:none; color:var(--muted); }
+.tag { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:.08em; text-transform:uppercase; border-radius:100px; padding:3px 7px; font-weight:500; }
+.tag-ref { color:#8E4A8E; background:#F6E6F6; }
+.tag-gmail { color:#3A6F8F; background:#E4F2F8; }
+.tag-notes { color:#6B5A1E; background:#FFF4CF; }
+.app-meta { font-family:'DM Mono',monospace; font-size:12px; color:var(--ink-light); line-height:1.6; min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.app-meta .ago { color:var(--muted); }
+.track { display:flex; flex-direction:column; gap:7px; min-width:0; }
+.badge { align-self:flex-start; display:inline-flex; align-items:center; gap:6px; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase; padding:4px 10px; border-radius:100px; color:var(--c); background:color-mix(in srgb, var(--c) 13%, white); font-weight:500; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.badge i { width:6px; height:6px; border-radius:50%; background:var(--c); flex-shrink:0; }
+.steps { display:flex; gap:4px; }
+.steps span { flex:1; height:4px; border-radius:100px; background:var(--border); }
+.steps span.on { background:var(--c); }
+.row-more { border:none; background:transparent; color:var(--muted); font-size:18px; border-radius:8px; height:32px; width:32px; cursor:pointer; }
+.row-more:hover { background:var(--canvas); color:var(--ink); }
+.row-menu { top:calc(100% - 8px); right:12px; }
+
+/* board */
+.board { display:grid; grid-template-columns:repeat(5, minmax(190px,1fr)); gap:12px; overflow-x:auto; padding-bottom:6px; }
+.col { background:#EFECE5; border-radius:var(--radius); padding:10px; min-height:160px; }
+.col h3 { display:flex; align-items:center; gap:7px; font-family:'DM Mono',monospace; font-size:10px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-light); padding:4px 4px 10px; }
+.col h3 i { width:7px; height:7px; border-radius:50%; background:var(--c); }
+.col h3 em { margin-left:auto; font-style:normal; color:var(--muted); }
+.bcard { display:block; width:100%; text-align:left; background:var(--surface); border:1.5px solid var(--border); border-radius:10px; padding:12px; margin-bottom:8px; box-shadow:var(--shadow-sm); cursor:pointer; transition:border-color .15s, transform .15s; color:var(--ink); font-family:inherit; }
+.bcard:hover { border-color:var(--ink); transform:translateY(-1px); }
+.bcard .co { font-family:'Lora',Georgia,serif; font-size:15px; font-weight:600; }
+.bcard .ro { font-size:12px; color:var(--ink-light); margin-top:2px; }
+.bcard .app-meta { margin-top:8px; font-size:11px; white-space:normal; }
+.col-empty { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); padding:8px 4px; }
+
+/* empty state */
+.empty-actions { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:18px; }
+
+/* add sheet */
+.sheet { width:560px; padding:26px 26px 22px; }
+.sheet h2 { margin-bottom:14px; }
+.sheet-tabs { display:flex; gap:2px; border-bottom:1px solid var(--border); margin:0 -26px 18px; padding:0 26px; overflow-x:auto; scrollbar-width:none; }
+.sheet-tabs button { border:none; background:transparent; padding:10px 12px; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap; cursor:pointer; }
+.sheet-tabs button[aria-selected="true"] { color:var(--ink); border-color:var(--ink); }
+.sheet-tabs button:hover { color:var(--ink); }
+.sheet-pane { display:none; }
+.sheet-pane.on { display:block; }
+.sheet-hint { font-size:13px; color:var(--ink-light); line-height:1.55; margin-bottom:12px; }
+#job-input { width:100%; min-height:130px; border:1.5px solid var(--border); border-radius:10px; background:var(--canvas); padding:12px 14px; font-family:'Plus Jakarta Sans',sans-serif; font-size:14px; line-height:1.55; color:var(--ink); outline:none; resize:vertical; }
+#job-input:focus { border-color:var(--ink); background:#fff; }
+.sheet .modal-footer { margin-top:16px; }
+.btn-ai { display:flex; align-items:center; gap:6px; }
+.btn-ai:disabled { background:var(--muted); cursor:not-allowed; transform:none; }
+.btn-ai .spinner { width:12px; height:12px; }
+.li-options { display:grid; gap:10px; }
+.li-option { text-align:left; border:1.5px solid var(--border); background:var(--canvas); border-radius:12px; padding:16px; cursor:pointer; transition:border-color .15s; font-family:inherit; color:var(--ink); }
+.li-option:hover { border-color:var(--ink); }
+.li-option strong { display:block; font-family:'Lora',Georgia,serif; font-size:16px; margin-bottom:4px; }
+.li-option span { font-size:13px; color:var(--ink-light); }
+
+#li-quick-btn { display:none !important; }
+
+@media (max-width:720px) {
+  header { flex-wrap:nowrap; padding:10px 16px; }
+  .logo-tagline, .btn-new-label, .chip-label { display:none; }
+  .btn-new { padding:10px 13px; }
+  #greeting-text { font-size:24px; }
+  .quick-btn { display:none; }
+  .apps-toolbar .table-title-wrap { width:100%; }
+  .apps-search { flex:1 1 0; }
+  #stats-bar .rate-sub { display:none; }
+  .gmail-chip::after { content:'Gmail'; }
+  .gmail-chip { padding:8px 12px; }
+  .app-row { grid-template-columns:40px minmax(0,1fr) 32px; grid-template-areas:"av who more" "av track track"; row-gap:10px; }
+  .app-row .av { grid-area:av; align-self:start; }
+  .app-row .who { grid-area:who; }
+  .app-row .app-meta { display:none; }
+  .app-row .track { grid-area:track; }
+  .app-row .row-more { grid-area:more; align-self:start; }
+  .who .ro .city-inline { display:inline; }
+  .sheet { padding:22px 18px 18px; }
+  .sheet-tabs { margin:0 -18px 16px; padding:0 18px; }
+  .nudge { flex-wrap:wrap; }
+}
 </style>
 </head>
 <body>
@@ -760,8 +937,7 @@ footer {
 </div>
 <header>
   <div class="logo">
-    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
-      <!-- 8 soft daisy petals, alternating blush tones, rotating around center (20,20) -->
+    <svg width="34" height="34" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0" aria-hidden="true">
       <ellipse cx="20" cy="7"  rx="4" ry="8" fill="#F5D0C5"/>
       <ellipse cx="20" cy="7"  rx="4" ry="8" fill="#FADADD" transform="rotate(45 20 20)"/>
       <ellipse cx="20" cy="7"  rx="4" ry="8" fill="#F5D0C5" transform="rotate(90 20 20)"/>
@@ -770,15 +946,11 @@ footer {
       <ellipse cx="20" cy="7"  rx="4" ry="8" fill="#FADADD" transform="rotate(225 20 20)"/>
       <ellipse cx="20" cy="7"  rx="4" ry="8" fill="#F5D0C5" transform="rotate(270 20 20)"/>
       <ellipse cx="20" cy="7"  rx="4" ry="8" fill="#FADADD" transform="rotate(315 20 20)"/>
-      <!-- Center: warm coral -->
       <circle cx="20" cy="20" r="7.5" fill="#FFAB91"/>
       <circle cx="20" cy="20" r="5"   fill="#FF7043"/>
       <circle cx="18.5" cy="18.5" r="1.4" fill="white" opacity="0.5"/>
-      <!-- Sparkle: 4-point cross top-right, teal -->
       <rect x="31.4" y="5"    width="2"  height="10" rx="1" fill="#4ECDC4"/>
       <rect x="27"   y="9.4"  width="10" height="2"  rx="1" fill="#4ECDC4"/>
-      <rect x="31.4" y="5"    width="2"  height="10" rx="1" fill="#4ECDC4" opacity="0.4" transform="rotate(45 32.4 10)"/>
-      <rect x="27"   y="9.4"  width="10" height="2"  rx="1" fill="#4ECDC4" opacity="0.4" transform="rotate(45 32.4 10)"/>
     </svg>
     <div>
       <div class="logo-text">Trackly</div>
@@ -786,16 +958,12 @@ footer {
     </div>
   </div>
   <div class="header-right">
-    <div class="stat-pill"><span class="dot" style="background:var(--accent2)"></span>Total <strong id="stat-total">0</strong></div>
-    <div class="stat-pill"><span class="dot" style="background:var(--accent4)"></span>Responded <strong id="stat-responded">0</strong></div>
-    <div class="stat-pill"><span class="dot" style="background:var(--accent3)"></span>Interviews <strong id="stat-interviews">0</strong></div>
-    <div class="stat-pill"><span class="dot" style="background:var(--accent6)"></span>Offers <strong id="stat-offers">0</strong></div>
     <div id="gmail-status-wrap">
-      <button class="btn-gmail" id="btn-gmail-connect" onclick="openGmailSetup()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z" fill="white"/></svg>
-        Connect Gmail
+      <button class="gmail-chip" id="btn-gmail-connect" onclick="openGmailSetup()" title="Connect Gmail so Trackly updates your applications from your inbox">
+        <span class="chip-dot"></span><span class="chip-label">Connect Gmail</span>
       </button>
     </div>
+    <button class="btn-new" onclick="openAddSheet()" aria-label="Add application"><span class="plus">+</span><span class="btn-new-label">Add application</span></button>
   </div>
 </header>
 
@@ -803,15 +971,14 @@ footer {
 <main>
 
 <!-- ── GREETING ── -->
-  <div id="greeting-bar" style="margin-bottom:24px;animation:greetIn 0.7s cubic-bezier(.34,1.56,.64,1) both">
+  <div id="greeting-bar" style="animation:greetIn 0.7s cubic-bezier(.34,1.56,.64,1) both">
     <div style="display:flex;align-items:center;gap:10px">
-      <div id="greeting-text" style="font-family:'Lora',Georgia,serif;font-size:28px;font-weight:600;font-style:italic;color:var(--ink);letter-spacing:-0.01em;line-height:1.3"></div>
-      <svg id="greeting-sparkle" width="22" height="22" viewBox="0 0 22 22" fill="none" style="flex-shrink:0;animation:sparkleAnim 2.5s ease-in-out infinite">
-        <!-- 4-point star sparkle -->
+      <div id="greeting-text"></div>
+      <svg id="greeting-sparkle" width="20" height="20" viewBox="0 0 22 22" fill="none" style="flex-shrink:0;animation:sparkleAnim 2.5s ease-in-out infinite" aria-hidden="true">
         <path d="M11 1 C11 1 12.2 7.8 14.2 9.8 C16.2 11.8 21 11 21 11 C21 11 16.2 12.2 14.2 14.2 C12.2 16.2 11 21 11 21 C11 21 9.8 16.2 7.8 14.2 C5.8 12.2 1 11 1 11 C1 11 5.8 9.8 7.8 7.8 C9.8 5.8 11 1 11 1 Z" fill="#4ECDC4"/>
       </svg>
     </div>
-    <div id="greeting-sub" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:4px"></div>
+    <div id="greeting-sub"></div>
   </div>
   <style>
     @keyframes greetIn { from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)} }
@@ -824,19 +991,25 @@ footer {
     }
   </style>
 
-  <!-- GMAIL BANNER -->
-  <div class="gmail-banner" id="gmail-banner">
-    <div class="gmail-banner-left">
-      <div class="banner-icon">✉️</div>
-      <div>
-        <h3>Connect Gmail for auto-updates</h3>
-        <p>Trackly scans your inbox for application confirmations, rejections, interview invites & offers — and updates the table automatically.</p>
-      </div>
-    </div>
-    <button class="btn-gmail" onclick="openGmailSetup()" style="flex-shrink:0;position:relative;z-index:1">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M22 6C22 4.9 21.1 4 20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6ZM20 6L12 11L4 6H20ZM20 18H4V8L12 13L20 8V18Z" fill="white"/></svg>
-      Set Up Gmail
-    </button>
+  <!-- QUICK ADD -->
+  <form class="quick-add" id="quick-add" onsubmit="event.preventDefault(); quickAdd();">
+    <span class="quick-spark" aria-hidden="true">✦</span>
+    <input id="quick-input" type="text" autocomplete="off" placeholder="Paste a job listing or type “PM intern at Figma, Toronto”…" aria-label="Quick add with AI"/>
+    <button type="submit" class="quick-btn">Add with AI</button>
+  </form>
+
+  <!-- PIPELINE -->
+  <section class="pipeline" id="pipeline" aria-label="Your pipeline">
+    <div class="stages" id="stages"></div>
+    <div class="funnel" id="funnel"></div>
+    <div id="stats-bar"></div>
+  </section>
+
+  <!-- FOLLOW-UP NUDGE -->
+  <div class="nudge" id="nudge" style="display:none">
+    <span class="nudge-ico" aria-hidden="true">⏳</span>
+    <div id="nudge-text"></div>
+    <button class="nudge-btn" id="nudge-btn" onclick="showStale()">Show them</button>
   </div>
 
   <!-- EMAIL LOG -->
@@ -854,46 +1027,6 @@ footer {
     </div>
   </div>
 
-  <!-- TOP ACTIONS: PASTE + IMPORT -->
-  <div class="top-actions">
-
-    <!-- PASTE CARD -->
-    <div class="card">
-      <div class="card-label">
-        <span class="card-label-dot" style="background:var(--accent2)"></span>
-        Add via AI — Paste job listing
-      </div>
-      <div class="paste-row">
-        <textarea id="job-input" placeholder="Paste a job description, confirmation email, or any job details — Claude extracts everything automatically..."></textarea>
-        <button class="btn-add" id="btn-add" onclick="addJob()">
-          <span class="btn-icon">✦</span>
-          <span>Add Job</span>
-        </button>
-      </div>
-      <div class="progress-wrap" id="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
-      <div class="error-banner" id="error-banner"></div>
-    </div>
-
-    <!-- IMPORT CARD -->
-    <div class="card">
-      <div class="card-label">
-        <span class="card-label-dot" style="background:var(--accent6)"></span>
-        Import from Excel / CSV
-      </div>
-      <div class="drop-zone" id="drop-zone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(event)"/>
-        <span class="drop-icon">📊</span>
-        <div class="drop-title">Drop your file here</div>
-        <div class="drop-sub">or click to browse</div>
-        <div class="drop-formats">
-          <span class="fmt-tag">.xlsx</span>
-          <span class="fmt-tag">.xls</span>
-          <span class="fmt-tag">.csv</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- COLUMN MAPPER (shown after file upload) -->
   <div class="column-mapper" id="column-mapper">
     <div class="mapper-title">Map your columns</div>
@@ -906,55 +1039,87 @@ footer {
     </div>
   </div>
 
-  <!-- TABLE -->
+  <!-- APPLICATIONS -->
   <div class="table-section">
-
-    <!-- STATS BAR -->
-    <div id="stats-bar" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:18px"></div>
-
-    <div class="table-header">
+    <div class="apps-toolbar">
       <div class="table-title-wrap">
         <div class="table-title">Applications</div>
         <div class="table-count" id="table-count"></div>
       </div>
-      <div class="table-actions">
-        <button class="btn-secondary" onclick="openAddManual()">+ Manual</button>
-        <button class="btn-secondary" onclick="openBookmarkletModal()">🔖 LinkedIn</button>
-        <button class="btn-secondary" id="btn-scan" style="display:none" onclick="scanEmails()">⟳ Scan Email</button>
-        <button class="btn-secondary" onclick="exportCSV()">↓ Export CSV</button>
-        <button class="btn-secondary" onclick="clearAll()" style="color:var(--accent1);border-color:var(--accent1)" onmouseover="this.style.background='var(--accent1)';this.style.color='#fff'" onmouseout="this.style.background='';this.style.color='var(--accent1)'">Clear All</button>
+      <label class="apps-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="var(--muted)" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="search-input" type="text" placeholder="Search company, role or city" oninput="applyFilters()" aria-label="Search applications"/>
+      </label>
+      <div class="seg" role="group" aria-label="View">
+        <button id="view-list" aria-pressed="true" onclick="setView('list')">List</button>
+        <button id="view-board" aria-pressed="false" onclick="setView('board')">Board</button>
+      </div>
+      <div class="menu-wrap">
+        <button class="icon-btn" id="apps-menu-btn" onclick="toggleMenu('apps-menu', event)" aria-label="More options" aria-haspopup="true">⋯</button>
+        <div class="menu" id="apps-menu" role="menu">
+          <button role="menuitem" id="btn-scan" style="display:none" onclick="closeMenus(); scanEmails()">⟳ Scan email now</button>
+          <button role="menuitem" onclick="closeMenus(); exportCSV()">↓ Export CSV</button>
+          <button role="menuitem" onclick="closeMenus(); changeName()">✎ Change name</button>
+          <button role="menuitem" class="danger" onclick="closeMenus(); clearAll()">Clear all applications</button>
+        </div>
       </div>
     </div>
-
-    <!-- SEARCH + FILTER ROW -->
-    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
-      <div style="flex:1;min-width:220px;position:relative">
-        <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);pointer-events:none" width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="var(--muted)" stroke-width="2"/><path d="M16.5 16.5L21 21" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/></svg>
-        <input id="search-input" type="text" placeholder="Search company, role, or city..."
-          oninput="applyFilters()"
-          style="width:100%;border:1.5px solid var(--border);border-radius:100px;padding:9px 16px 9px 34px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;outline:none;background:var(--surface);color:var(--ink);transition:border-color 0.2s,box-shadow 0.2s"
-          onfocus="this.style.borderColor='var(--ink)';this.style.boxShadow='0 0 0 3px rgba(26,26,46,0.07)'"
-          onblur="this.style.borderColor='var(--border)';this.style.boxShadow='none'"/>
-      </div>
-      <select id="filter-response" onchange="applyFilters()" style="border:1.5px solid var(--border);border-radius:100px;padding:9px 16px;font-family:'DM Mono',monospace;font-size:11px;outline:none;background:var(--surface);color:var(--ink);cursor:pointer;letter-spacing:0.04em">
-        <option value="">All Responses</option>
-        <option value="Pending">Pending</option>
-        <option value="Yes">Heard Back</option>
-        <option value="No">No Response</option>
-      </select>
-      <select id="filter-decision" onchange="applyFilters()" style="border:1.5px solid var(--border);border-radius:100px;padding:9px 16px;font-family:'DM Mono',monospace;font-size:11px;outline:none;background:var(--surface);color:var(--ink);cursor:pointer;letter-spacing:0.04em">
-        <option value="">All Decisions</option>
-        <option value="Pending">Pending</option>
-        <option value="Offer">Offer</option>
-        <option value="Rejected">Rejected</option>
-        <option value="Withdrew">Withdrew</option>
-      </select>
-      <button onclick="clearFilters()" id="clear-filters-btn" style="display:none;background:none;border:1.5px solid var(--accent1);color:var(--accent1);border-radius:100px;padding:8px 14px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.15s" onmouseover="this.style.background='var(--accent1)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='var(--accent1)'">✕ Clear</button>
-    </div>
-
+    <div class="filter-note" id="filter-note" style="display:none"></div>
     <div id="table-container"></div>
   </div>
 </main>
+
+<!-- ADD SHEET -->
+<div class="modal-overlay" id="add-sheet">
+  <div class="modal sheet" role="dialog" aria-modal="true" aria-labelledby="add-sheet-title">
+    <button class="btn-x" onclick="closeAddSheet()" aria-label="Close">×</button>
+    <h2 id="add-sheet-title">Add an application</h2>
+    <div class="sheet-tabs" role="tablist">
+      <button role="tab" data-tab="ai" aria-selected="true" onclick="selectAddTab('ai')">✦ Paste listing</button>
+      <button role="tab" data-tab="import" aria-selected="false" onclick="selectAddTab('import')">Import file</button>
+      <button role="tab" data-tab="linkedin" aria-selected="false" onclick="selectAddTab('linkedin')">LinkedIn</button>
+      <button role="tab" data-tab="manual" aria-selected="false" onclick="closeAddSheet(); openAddManual()">Manual</button>
+    </div>
+
+    <div class="sheet-pane on" data-pane="ai">
+      <p class="sheet-hint">Paste a job description or a confirmation email. Claude fills in the company, role, location and date.</p>
+      <textarea id="job-input" placeholder="Paste here…"></textarea>
+      <div class="progress-wrap" id="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+      <div class="error-banner" id="error-banner"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeAddSheet()">Cancel</button>
+        <button class="btn-primary btn-ai" id="btn-add" onclick="addJob()"><span class="btn-icon">✦</span><span>Fill it in</span></button>
+      </div>
+    </div>
+
+    <div class="sheet-pane" data-pane="import">
+      <div class="drop-zone" id="drop-zone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <input type="file" id="file-input" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(event)" aria-label="Choose a spreadsheet"/>
+        <span class="drop-icon">📊</span>
+        <div class="drop-title">Drop your spreadsheet here</div>
+        <div class="drop-sub">or click to browse. You'll match the columns next.</div>
+        <div class="drop-formats">
+          <span class="fmt-tag">.xlsx</span>
+          <span class="fmt-tag">.xls</span>
+          <span class="fmt-tag">.csv</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet-pane" data-pane="linkedin">
+      <div class="li-options">
+        <button class="li-option" onclick="closeAddSheet(); openLiModal()">
+          <strong>Paste a LinkedIn job</strong>
+          <span>Paste the job link or description and Claude adds it.</span>
+        </button>
+        <button class="li-option" onclick="closeAddSheet(); openBookmarkletModal()">
+          <strong>Add the one-click bookmark</strong>
+          <span>Click “Add to Trackly” on any LinkedIn job page.</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <footer>
   <div class="footer-logo">Trackly<span style="font-family:'DM Mono',monospace;font-size:10px;font-weight:400;color:var(--muted);margin-left:8px">Because applying to jobs shouldn't feel like a second job.</span></div>
@@ -1217,106 +1382,214 @@ function ensureApiKey() {
 // ═══════════════════════════════════════════════════════════════
 function save() { localStorage.setItem('trackly_apps', JSON.stringify(apps)); render(); updateStats(); }
 
-function pill(v, t) {
-  if (t === 'yn')  return v === 'Yes' ? '<span class="pill p-yes">✓ Yes</span>' : '<span class="pill p-no">✕ No</span>';
-  if (t === 'res') return v === 'Yes' ? '<span class="pill p-yes">✓ Yes</span>' : v === 'No' ? '<span class="pill p-no">✕ No</span>' : '<span class="pill p-pending">— Pending</span>';
-  if (t === 'dec') {
-    if (v === 'Offer')    return '<span class="pill p-offer">🎉 Offer</span>';
-    if (v === 'Rejected') return '<span class="pill p-reject">✕ Rejected</span>';
-    if (v === 'Withdrew') return '<span class="pill p-withdrew">↩ Withdrew</span>';
-    return '<span class="pill p-pending">— Pending</span>';
-  }
-  return '';
+// ── Stages: one status per application, derived from the saved fields ──
+// The saved data model is unchanged (response, round1-3, decision); stage is computed.
+const STAGES = [
+  { key:'all',       label:'All',          c:'var(--ink)' },
+  { key:'applied',   label:'Applied',      c:'var(--st-applied)' },
+  { key:'heard',     label:'Heard back',   c:'var(--st-heard)' },
+  { key:'interview', label:'Interviewing', c:'var(--st-interview)' },
+  { key:'offer',     label:'Offer',        c:'var(--st-offer)' },
+  { key:'closed',    label:'Closed',       c:'var(--st-closed)' },
+];
+const AVATAR_COLORS = ['#FF7A6B','#4ECDC4','#45B7D1','#B98AD8','#E59A3A','#6BBF8A','#E07AA8','#7A8CE0'];
+const STALE_DAYS = 14;
+
+function stageOf(a) {
+  if (a.decision === 'Offer') return 'offer';
+  if (a.decision === 'Rejected' || a.decision === 'Withdrew') return 'closed';
+  if (a.round1 || a.round2 || a.round3) return 'interview';
+  if (a.response === 'Yes') return 'heard';
+  return 'applied';
 }
-
-let filteredApps = null; // null = show all
-
-function getVisibleApps() { return filteredApps !== null ? filteredApps : apps; }
-
-function applyFilters() {
-  const q       = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
-  const resp    = document.getElementById('filter-response')?.value || '';
-  const dec     = document.getElementById('filter-decision')?.value || '';
-  const hasFilter = q || resp || dec;
-  document.getElementById('clear-filters-btn').style.display = hasFilter ? 'block' : 'none';
-
-  if (!hasFilter) { filteredApps = null; }
-  else {
-    filteredApps = apps.filter(a => {
-      const matchQ = !q || [a.company, a.role, a.city].some(f => (f||'').toLowerCase().includes(q));
-      const matchR = !resp || a.response === resp;
-      const matchD = !dec  || a.decision === dec;
-      return matchQ && matchR && matchD;
-    });
-  }
-  render();
+function topRound(a) { return a.round3 ? 3 : a.round2 ? 2 : a.round1 ? 1 : 0; }
+// 1 applied · 2 heard back · 3-5 rounds · 6 offer
+function stepOf(a) {
+  if (a.decision === 'Offer') return 6;
+  const r = topRound(a);
+  if (r) return 2 + r;
+  return a.response === 'Yes' ? 2 : 1;
 }
+function stageLabel(a) {
+  const s = stageOf(a), r = topRound(a);
+  if (s === 'offer') return 'Offer';
+  if (s === 'closed') return (a.decision === 'Withdrew' ? 'Withdrew' : 'Not moving forward') + (r ? ` · after round ${r}` : '');
+  if (s === 'interview') return `Interviewing · round ${r}`;
+  if (s === 'heard') return 'Heard back';
+  return 'Waiting to hear back';
+}
+function daysSince(d) {
+  const t = Date.parse(d); if (isNaN(t)) return null;
+  return Math.floor((Date.now() - t) / 864e5);
+}
+function agoText(d) {
+  const n = daysSince(d); if (n === null) return '';
+  if (n <= 0) return 'today';
+  if (n === 1) return 'yesterday';
+  if (n < 14) return `${n} days ago`;
+  if (n < 60) return `${Math.round(n / 7)} weeks ago`;
+  return `${Math.round(n / 30)} months ago`;
+}
+function isStale(a) { const n = daysSince(a.date); return stageOf(a) === 'applied' && n !== null && n >= STALE_DAYS; }
+function avatarColor(name) { let h = 0; for (const ch of String(name || '?')) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return AVATAR_COLORS[h % AVATAR_COLORS.length]; }
+function hasNotes(a) { return !!(a.notes_r1_q || a.notes_r1_fb || a.notes_r2_q || a.notes_r2_fb || a.notes_r3_q || a.notes_r3_fb || a.notes_general); }
 
+// ── Filters ──
+let stageFilter = 'all';
+let onlyStale   = false;
+let viewMode    = (() => { try { return localStorage.getItem('trackly_view') === 'board' ? 'board' : 'list'; } catch { return 'list'; } })();
+let filteredApps = null; // kept for compatibility: null = no filter
+
+function getVisibleApps() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+  return apps.filter(a =>
+    (stageFilter === 'all' || stageOf(a) === stageFilter) &&
+    (!onlyStale || isStale(a)) &&
+    (!q || [a.company, a.role, a.city].some(f => (f || '').toLowerCase().includes(q))));
+}
+function applyFilters() { render(); }
 function clearFilters() {
-  document.getElementById('search-input').value = '';
-  document.getElementById('filter-response').value = '';
-  document.getElementById('filter-decision').value = '';
-  filteredApps = null;
-  document.getElementById('clear-filters-btn').style.display = 'none';
+  const s = document.getElementById('search-input'); if (s) s.value = '';
+  stageFilter = 'all'; onlyStale = false; render();
+}
+function setStageFilter(k) { stageFilter = k; onlyStale = false; render(); }
+function showStale() {
+  stageFilter = 'all'; onlyStale = true;
+  if (viewMode !== 'list') setView('list'); else render();
+  document.querySelector('.table-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function setView(v) {
+  viewMode = v === 'board' ? 'board' : 'list';
+  try { localStorage.setItem('trackly_view', viewMode); } catch {}
   render();
+}
+
+// ── Menus ──
+function closeMenus() { document.querySelectorAll('.menu.open').forEach(m => m.classList.remove('open')); }
+function toggleMenu(id, e) {
+  e?.stopPropagation();
+  const m = document.getElementById(id); if (!m) return;
+  const wasOpen = m.classList.contains('open');
+  closeMenus();
+  if (!wasOpen) m.classList.add('open');
+}
+document.addEventListener('click', e => { if (!e.target.closest('.menu')) closeMenus(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenus(); });
+function confirmDelete(id) {
+  const a = apps.find(x => x.id === id); if (!a) return;
+  if (confirm(`Delete ${a.company || 'this application'}${a.role ? ' (' + a.role + ')' : ''}?`)) delApp(id);
+}
+
+// ── Render ──
+function renderPipeline() {
+  const pipe = document.getElementById('pipeline');
+  pipe.style.display = apps.length ? '' : 'none';
+  const count = k => k === 'all' ? apps.length : apps.filter(a => stageOf(a) === k).length;
+  document.getElementById('stages').innerHTML = STAGES.map(s =>
+    `<button class="stage" style="--c:${s.c}" aria-pressed="${stageFilter === s.key && !onlyStale}" onclick="setStageFilter('${s.key}')">
+      <span class="n">${count(s.key)}</span><span class="l">${s.key === 'all' ? '' : '<i></i>'}${s.label}</span>
+    </button>`).join('');
+  document.getElementById('funnel').innerHTML = STAGES.slice(1).map(s =>
+    `<span style="--c:${s.c};flex:${count(s.key)}" title="${s.label}: ${count(s.key)}"></span>`).join('');
+
+  const stale = apps.filter(isStale).length;
+  const nudge = document.getElementById('nudge');
+  nudge.style.display = stale ? '' : 'none';
+  if (stale) {
+    document.getElementById('nudge-text').innerHTML =
+      `<b>${stale} application${stale === 1 ? '' : 's'}</b> ${stale === 1 ? 'hasn’t' : 'haven’t'} heard back in over 2 weeks. A short follow-up note can help.`;
+    document.getElementById('nudge-btn').textContent = stale === 1 ? 'Show it' : 'Show them';
+  }
+}
+
+function trackHtml(a) {
+  const st = STAGES.find(s => s.key === stageOf(a)), step = stepOf(a);
+  const bars = [1, 2, 3, 4, 5, 6].map(i => `<span class="${i <= step ? 'on' : ''}"></span>`).join('');
+  return `<div class="track" style="--c:${st.c}"><span class="badge" title="${esc(stageLabel(a))}"><i></i>${esc(stageLabel(a))}</span>
+    <div class="steps" title="Applied → Heard back → Round 1 → Round 2 → Round 3 → Offer">${bars}</div></div>`;
+}
+
+function rowMenuHtml(a) {
+  const interviewed = a.round1 || a.round2 || a.round3;
+  return `<div class="menu row-menu" id="menu-${a.id}" role="menu">
+    <button role="menuitem" onclick="event.stopPropagation(); closeMenus(); openEdit(${a.id})">✎ Edit</button>
+    ${interviewed ? `<button role="menuitem" onclick="event.stopPropagation(); closeMenus(); openNotesModal(${a.id})">📝 Interview notes</button>` : ''}
+    ${a.linkedinUrl ? `<button role="menuitem" onclick="event.stopPropagation(); closeMenus(); window.open('${esc(a.linkedinUrl)}','_blank','noopener')">↗ Open job post</button>` : ''}
+    <button role="menuitem" class="danger" onclick="event.stopPropagation(); closeMenus(); confirmDelete(${a.id})">Delete</button>
+  </div>`;
+}
+
+function renderList(list) {
+  return `<div class="app-list">${list.map(a => {
+    const co = a.company || 'Unknown', city = a.city && a.city !== 'Unknown' ? a.city : '';
+    const tags = [
+      a.referral === 'Yes' ? '<span class="tag tag-ref">Referral</span>' : '',
+      a.source === 'gmail' ? '<span class="tag tag-gmail" title="Added from a Gmail email">✉ Gmail</span>' : '',
+      hasNotes(a) ? '<span class="tag tag-notes" title="Has interview notes">Notes</span>' : '',
+    ].join('');
+    return `<div class="app-row" id="row-${a.id}" tabindex="0" role="button" aria-label="Edit ${esc(co)}"
+        onclick="openEdit(${a.id})" onkeydown="if(event.key==='Enter'&&event.target===this)openEdit(${a.id})">
+      <div class="av" style="--c:${avatarColor(co)}">${esc(co.trim()[0] || '?').toUpperCase()}</div>
+      <div class="who"><div class="co">${esc(co)}${tags}</div>
+        <div class="ro">${esc(a.role || 'Role not set')}${city ? `<span class="city-inline"> · ${esc(city)}</span>` : ''}</div></div>
+      <div class="app-meta">${esc(city || '—')}<br><span class="ago">${a.date ? 'Applied ' + agoText(a.date) : 'No date'}</span></div>
+      ${trackHtml(a)}
+      <button class="row-more" onclick="toggleMenu('menu-${a.id}', event)" aria-label="More actions for ${esc(co)}" aria-haspopup="true">⋯</button>
+      ${rowMenuHtml(a)}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderBoard(list) {
+  return `<div class="board">${STAGES.slice(1).map(s => {
+    const items = list.filter(a => stageOf(a) === s.key);
+    return `<div class="col"><h3 style="--c:${s.c}"><i></i>${s.label}<em>${items.length}</em></h3>${items.length ? items.map(a =>
+      `<button class="bcard" onclick="openEdit(${a.id})">
+        <div class="co">${esc(a.company || 'Unknown')}</div><div class="ro">${esc(a.role || '')}</div>
+        <div class="app-meta">${stageOf(a) === 'interview' ? `Round ${topRound(a)} · ` : stageOf(a) === 'closed' ? esc(a.decision) + ' · ' : ''}${a.date ? agoText(a.date) : ''}</div>
+      </button>`).join('') : '<div class="col-empty">Nothing here</div>'}</div>`;
+  }).join('')}</div>`;
 }
 
 function render() {
+  renderPipeline();
   const visible = getVisibleApps();
   const c = document.getElementById('table-container');
-  const isFiltered = filteredApps !== null;
-  const countText = isFiltered
-    ? `${visible.length} of ${apps.length} application${apps.length===1?'':'s'}`
-    : apps.length ? `${apps.length} application${apps.length===1?'':'s'}` : '';
-  document.getElementById('table-count').textContent = countText;
+  const q = (document.getElementById('search-input')?.value || '').trim();
+  const isFiltered = stageFilter !== 'all' || onlyStale || !!q;
+  filteredApps = isFiltered ? visible : null;
+
+  document.getElementById('table-count').textContent = isFiltered
+    ? `${visible.length} of ${apps.length}`
+    : apps.length ? `${apps.length}` : '';
+  document.querySelector('.apps-toolbar').classList.toggle('is-empty', !apps.length);
+  document.getElementById('view-list').setAttribute('aria-pressed', viewMode === 'list');
+  document.getElementById('view-board').setAttribute('aria-pressed', viewMode === 'board');
+
+  const note = document.getElementById('filter-note');
+  const parts = [];
+  if (onlyStale) parts.push('waiting 2+ weeks');
+  if (stageFilter !== 'all') parts.push(STAGES.find(s => s.key === stageFilter).label.toLowerCase());
+  if (q) parts.push(`“${esc(q)}”`);
+  note.style.display = parts.length ? 'flex' : 'none';
+  note.innerHTML = parts.length ? `Showing ${parts.join(' · ')} <button onclick="clearFilters()">Show all</button>` : '';
 
   if (!apps.length) {
-    c.innerHTML = `<div class="table-surface"><div class="empty-state"><div class="empty-blob">🚀</div><div class="empty-title">Ready for launch</div><div class="empty-sub">Paste a job listing, import your spreadsheet, or add manually</div></div></div>`;
+    c.innerHTML = `<div class="table-surface"><div class="empty-state"><div class="empty-blob">🚀</div>
+      <div class="empty-title">Ready for launch</div>
+      <div class="empty-sub">Add your first application to start tracking</div>
+      <div class="empty-actions">
+        <button class="btn-primary" onclick="openAddSheet('ai')">✦ Paste a job listing</button>
+        <button class="btn-secondary" onclick="openAddSheet('import')">Import a spreadsheet</button>
+        <button class="btn-secondary" onclick="openAddManual()">Add manually</button>
+      </div></div></div>`;
     return;
   }
-  if (isFiltered && !visible.length) {
-    c.innerHTML = `<div class="table-surface"><div class="empty-state"><div class="empty-blob" style="background:linear-gradient(135deg,var(--accent5),var(--accent6))">🔍</div><div class="empty-title">No matches found</div><div class="empty-sub">Try a different search term or clear the filters</div></div></div>`;
+  if (!visible.length) {
+    c.innerHTML = `<div class="table-surface"><div class="empty-state"><div class="empty-blob" style="background:linear-gradient(135deg,var(--accent5),var(--accent6))">🔍</div><div class="empty-title">No matches</div><div class="empty-sub">Try another stage or search, or <a href="#" onclick="clearFilters();return false">show all</a></div></div></div>`;
     return;
   }
-
-  const rows = visible.map((a, i) => {
-    const iv = [
-      a.round1 ? '<span class="pill p-r1">R1</span>' : '',
-      a.round2 ? '<span class="pill p-r2">R2</span>' : '',
-      a.round3 ? '<span class="pill p-r3">R3</span>' : '',
-    ].filter(Boolean).join('') || '<span style="color:#ccc;font-size:11px;font-family:DM Mono,monospace">—</span>';
-
-    const hasInterview = a.round1 || a.round2 || a.round3;
-    const hasNotes = a.notes_r1_q || a.notes_r1_fb || a.notes_r2_q || a.notes_r2_fb || a.notes_r3_q || a.notes_r3_fb || a.notes_general;
-    const notesBtn = hasInterview
-      ? `<button class="btn-notes ${hasNotes ? 'has-notes' : ''}" title="${hasNotes ? 'View/edit interview notes' : 'Add interview notes'}" onclick="openNotesModal(${a.id})">
-          📝 ${hasNotes ? 'Notes' : 'Add Notes'}
-        </button>`
-      : '';
-
-    return `<tr id="row-${a.id}">
-      <td class="col-num">${i+1}</td>
-      <td class="col-date">${a.date||'—'}</td>
-      <td class="col-co">${esc(a.company||'—')}${a.source==='gmail'?'<span class="pill p-gmail" title="Added from a Gmail confirmation email">✉ Gmail</span>':''}</td>
-      <td class="col-role">${esc(a.role||'—')}</td>
-      <td>${pill(a.referral,'yn')}</td>
-      <td class="col-city">${esc(a.city||'—')}</td>
-      <td>${pill(a.response,'res')}</td>
-      <td><div class="icell">${iv}${notesBtn ? '<span style="margin-left:6px">'+notesBtn+'</span>' : ''}</div></td>
-      <td>${pill(a.decision,'dec')}</td>
-      <td style="white-space:nowrap">
-        <button class="btn-row-action" title="Edit" onclick="openEdit(${a.id})">✎</button>
-        <button class="btn-row-action" title="Delete" onclick="delApp(${a.id})" style="color:var(--accent1)">✕</button>
-      </td>
-    </tr>`;
-  }).join('');
-  c.innerHTML = `<div class="table-surface"><div class="table-wrap"><table>
-    <thead><tr>
-      <th>#</th><th>Date</th><th>Company</th><th>Role</th><th>Referral</th>
-      <th>City</th><th>Response</th><th>Interviews</th><th>Decision</th><th></th>
-    </tr></thead>
-    <tbody>${rows}</tbody>
-  </table></div></div>`;
+  c.innerHTML = viewMode === 'board' ? renderBoard(visible) : renderList(visible);
 }
 
 function updateStats() {
@@ -1324,35 +1597,44 @@ function updateStats() {
   const responded   = apps.filter(a => a.response === 'Yes').length;
   const interviews  = apps.filter(a => a.round1||a.round2||a.round3).length;
   const offers      = apps.filter(a => a.decision === 'Offer').length;
-  const rejected    = apps.filter(a => a.decision === 'Rejected').length;
-  const pending     = apps.filter(a => a.decision === 'Pending').length;
   const respRate    = total ? Math.round((responded / total) * 100) : 0;
   const intRate     = total ? Math.round((interviews / total) * 100) : 0;
   const offerRate   = total ? Math.round((offers / total) * 100) : 0;
 
-  // Header stat pills
-  document.getElementById('stat-total').textContent      = total;
-  document.getElementById('stat-responded').textContent  = responded;
-  document.getElementById('stat-interviews').textContent = interviews;
-  document.getElementById('stat-offers').textContent     = offers;
-
-  // Stats insight bar
   if (!total) { document.getElementById('stats-bar').innerHTML = ''; return; }
-
-  const statCard = (label, value, sub, color) => `
-    <div style="background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:16px 18px;border-top:3px solid ${color}">
-      <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">${label}</div>
-      <div style="font-family:'Lora',Georgia,serif;font-size:28px;font-weight:700;color:var(--ink);letter-spacing:-0.02em;line-height:1">${value}</div>
-      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:5px;letter-spacing:0.04em">${sub}</div>
-    </div>`;
-
+  const rate = (label, value, sub) => `<div title="${sub}">${label} <b>${value}</b> <span class="rate-sub">${sub}</span></div>`;
   document.getElementById('stats-bar').innerHTML = [
-    statCard('Response Rate',    `${respRate}%`,  `${responded} of ${total} heard back`,           '#4ECDC4'),
-    statCard('Interview Rate',   `${intRate}%`,   `${interviews} of ${total} applications got an interview`, '#FFAB91'),
-    statCard('Offer Rate',       `${offerRate}%`, `${offers} of ${total} applications got an offer`,         '#DDA0DD'),
+    rate('Response Rate',  `${respRate}%`,  `${responded} of ${total} heard back`),
+    rate('Interview Rate', `${intRate}%`,   `${interviews} of ${total} applications got an interview`),
+    rate('Offer Rate',     `${offerRate}%`, `${offers} of ${total} applications got an offer`),
   ].join('');
 }
 
+// ── Add sheet ──
+function openAddSheet(tab = 'ai') {
+  closeMenus();
+  document.getElementById('add-sheet').classList.add('open');
+  selectAddTab(tab);
+}
+function closeAddSheet() { document.getElementById('add-sheet').classList.remove('open'); }
+function selectAddTab(tab) {
+  document.querySelectorAll('#add-sheet .sheet-tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
+  document.querySelectorAll('#add-sheet .sheet-pane').forEach(p => p.classList.toggle('on', p.dataset.pane === tab));
+  if (tab === 'ai') setTimeout(() => document.getElementById('job-input').focus(), 50);
+}
+function quickAdd() {
+  const q = document.getElementById('quick-input');
+  const text = q.value.trim();
+  openAddSheet('ai');
+  if (!text) return;
+  document.getElementById('job-input').value = text;
+  q.value = '';
+  addJob();
+}
+document.getElementById('add-sheet').addEventListener('click', e => { if (e.target.id === 'add-sheet' && !isAdding) closeAddSheet(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('add-sheet').classList.contains('open') && !document.getElementById('key-modal').classList.contains('open')) closeAddSheet();
+});
 
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
@@ -1411,6 +1693,7 @@ function handleDrop(e) { e.preventDefault(); document.getElementById('drop-zone'
 function handleFileSelect(e) { const f=e.target.files[0]; if(f) processFile(f); }
 
 function processFile(file) {
+  closeAddSheet();
   const reader = new FileReader();
   reader.onload = function(e) {
     try {
@@ -1636,7 +1919,6 @@ document.addEventListener('visibilitychange', () => {
 });
 
 function showGmailPaused() {
-  document.getElementById('gmail-banner').style.display='none';
   document.getElementById('email-log-wrap').style.display='block';
   document.getElementById('gmail-status-wrap').innerHTML=`
     <button class="btn-gmail" id="btn-gmail-resume" onclick="renewGmailToken(true)" title="Google sign-in expired. Click to resume syncing.">
@@ -1674,7 +1956,6 @@ function handleOAuthCallback() {
 }
 
 function onGmailConnected() {
-  document.getElementById('gmail-banner').style.display='none';
   document.getElementById('email-log-wrap').style.display='block';
   document.getElementById('btn-scan').style.display='inline-block';
   document.getElementById('gmail-modal').classList.remove('open');
@@ -2016,7 +2297,8 @@ Text: """${text}"""`;
   try {
     const p=parseJsonReply(await callClaude(pt));
     apps.unshift({id:Date.now(),company:p.company||'Unknown',role:p.role||'Unknown',date:p.date||new Date().toISOString().split('T')[0],city:p.city||'Unknown',referral:p.referral||'No',response:p.response||'Pending',round1:!!p.round1,round2:!!p.round2,round3:!!p.round3,decision:p.decision||'Pending'});
-    save(); input.value='';
+    stageFilter='all'; onlyStale=false;
+    save(); input.value=''; closeAddSheet();
     showToast('✦ Added','Application tracked',`${p.company||'Unknown'} — ${p.role||'Unknown'}`);
   } catch(e){
     if(e.status===401) localStorage.removeItem('trackly_api_key');
@@ -2031,7 +2313,7 @@ Text: """${text}"""`;
 function setLoading(on) {
   isAdding=on; const btn=document.getElementById('btn-add'); const pw=document.getElementById('progress-wrap'); const pb=document.getElementById('progress-bar');
   if(on){btn.innerHTML='<div class="spinner"></div><span>Reading</span>';btn.disabled=true;pw.classList.add('visible');pb.style.width='0%';let w=0;btn._iv=setInterval(()=>{w=Math.min(w+Math.random()*12,88);pb.style.width=w+'%';},300);}
-  else{clearInterval(btn._iv);pb.style.width='100%';setTimeout(()=>{btn.innerHTML='<span class="btn-icon">✦</span><span>Add Job</span>';btn.disabled=false;pw.classList.remove('visible');pb.style.width='0%';},400);}
+  else{clearInterval(btn._iv);pb.style.width='100%';setTimeout(()=>{btn.innerHTML='<span class="btn-icon">✦</span><span>Fill it in</span>';btn.disabled=false;pw.classList.remove('visible');pb.style.width='0%';},400);}
 }
 function showErr(m){const e=document.getElementById('error-banner');e.textContent=m;e.style.display='block';}
 function hideErr(){document.getElementById('error-banner').style.display='none';}
